@@ -1,0 +1,168 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Factory &mdash; Beta v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Beta v1.0 documentation" href="index.html" />
+    <link rel="up" title="Core" href="core.html" />
+    <link rel="next" title="IBeta" href="ibeta.html" />
+    <link rel="prev" title="Chunk" href="chunk.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="ibeta.html" title="IBeta"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chunk.html" title="Chunk"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="factory">
+<h1>Factory<a class="headerlink" href="#factory" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="beta.factory.AlphaFactory">
+<em class="property">class </em><tt class="descclassname">beta.factory.</tt><tt class="descname">AlphaFactory</tt><a class="headerlink" href="#beta.factory.AlphaFactory" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="beta.factory.AlphaFactory.broadcast_for_chunk">
+<tt class="descname">broadcast_for_chunk</tt><big>(</big><em>packet</em>, <em>x</em>, <em>z</em><big>)</big><a class="headerlink" href="#beta.factory.AlphaFactory.broadcast_for_chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast a packet to all players that have a certain chunk loaded.</p>
+<p><cite>x</cite> and <cite>z</cite> are chunk coordinates, not block coordinates.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.factory.AlphaFactory.entities_near">
+<tt class="descname">entities_near</tt><big>(</big><em>x</em>, <em>y</em>, <em>z</em>, <em>radius</em><big>)</big><a class="headerlink" href="#beta.factory.AlphaFactory.entities_near" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a coordinate and a radius, return all entities within that
+radius of those coordinates.</p>
+<p>All arguments should be in pixels, not blocks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.factory.AlphaFactory.give">
+<tt class="descname">give</tt><big>(</big><em>coords</em>, <em>block</em>, <em>quantity</em><big>)</big><a class="headerlink" href="#beta.factory.AlphaFactory.give" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spawn a pickup at the specified coordinates.</p>
+<p>The coordinates need to be in pixels, not blocks.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="beta.factory.AlphaFactory.protocol">
+<tt class="descname">protocol</tt><a class="headerlink" href="#beta.factory.AlphaFactory.protocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">AlphaProtocol</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.factory.AlphaFactory.run_command">
+<tt class="descname">run_command</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#beta.factory.AlphaFactory.run_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a command string from the console or chat, execute it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.factory.AlphaFactory.update_season">
+<tt class="descname">update_season</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.factory.AlphaFactory.update_season" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the world&#8217;s season.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.factory.AlphaFactory.update_time">
+<tt class="descname">update_time</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.factory.AlphaFactory.update_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the in-game timer.</p>
+<p>The timer goes from 0 to 24000, both of which are high noon. The clock
+increments by 20 every second. Days are 20 minutes long.</p>
+<p>The day clock is incremented every in-game day, which is every 20
+minutes. The day clock goes from 0 to 360, which works out to a reset
+once every 5 days. This is a Babylonian in-game year.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chunk.html"
+                        title="previous chapter">Chunk</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ibeta.html"
+                        title="next chapter">IBeta</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/factory.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="ibeta.html" title="IBeta"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chunk.html" title="Chunk"
+             >previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" >Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

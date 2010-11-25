@@ -1,0 +1,137 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>World &mdash; Beta v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Beta v1.0 documentation" href="index.html" />
+    <link rel="up" title="Core" href="core.html" />
+    <link rel="next" title="Noise" href="noise.html" />
+    <link rel="prev" title="Stdio" href="stdio.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="noise.html" title="Noise"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="stdio.html" title="Stdio"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="world">
+<h1>World<a class="headerlink" href="#world" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="beta.world.World">
+<em class="property">class </em><tt class="descclassname">beta.world.</tt><tt class="descname">World</tt><big>(</big><em>folder</em><big>)</big><a class="headerlink" href="#beta.world.World" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="beta.world.World.generate_level">
+<tt class="descname">generate_level</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.world.World.generate_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the level metadata.</p>
+<p>This method currently does not generate all of Alpha&#8217;s metadata, just
+the data used by Beta.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.world.World.populate_chunk">
+<tt class="descname">populate_chunk</tt><big>(</big><em>chunk</em><big>)</big><a class="headerlink" href="#beta.world.World.populate_chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recreate data for a chunk.</p>
+<p>This method does arbitrary terrain generation depending on the current
+plugins, and then regenerates the chunk metadata so that the chunk can
+be sent to clients.</p>
+<p>A lot of maths may be done by this method, so do not call it unless
+absolutely necessary, e.g. when the chunk is created for the first
+time.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="stdio.html"
+                        title="previous chapter">Stdio</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="noise.html"
+                        title="next chapter">Noise</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/world.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="noise.html" title="Noise"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="stdio.html" title="Stdio"
+             >previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" >Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

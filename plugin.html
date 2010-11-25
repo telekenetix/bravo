@@ -1,0 +1,173 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>plugin – Plugin loaders &mdash; Beta v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Beta v1.0 documentation" href="index.html" />
+    <link rel="up" title="Core" href="core.html" />
+    <link rel="next" title="Protocol" href="protocol.html" />
+    <link rel="prev" title="IBeta" href="ibeta.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="protocol.html" title="Protocol"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ibeta.html" title="IBeta"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="plugin-plugin-loaders">
+<h1><tt class="docutils literal"><span class="pre">plugin</span></tt> &#8211; Plugin loaders<a class="headerlink" href="#plugin-plugin-loaders" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">plugin</span></tt> module provides several helper functions that wrap
+<tt class="docutils literal"><span class="pre">twisted.plugin</span></tt>. <tt class="docutils literal"><span class="pre">plugin</span></tt> makes loading plugins simpler.</p>
+<dl class="exception">
+<dt id="beta.plugin.PluginException">
+<em class="property">exception </em><tt class="descclassname">beta.plugin.</tt><tt class="descname">PluginException</tt><a class="headerlink" href="#beta.plugin.PluginException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal an error encountered during plugin handling.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beta.plugin.retrieve_plugins">
+<tt class="descclassname">beta.plugin.</tt><tt class="descname">retrieve_plugins</tt><big>(</big><em>interface</em>, <em>cached=True</em>, <em>cache={}</em><big>)</big><a class="headerlink" href="#beta.plugin.retrieve_plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look up all plugins for a certain interface.</p>
+<p>If the plugin cache is enabled, this function will not attempt to reload
+plugins from disk or discover new plugins.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>interface</strong> (<em>interface</em>) &#8211; the interface to use</li>
+<li><strong>cached</strong> (<em>bool</em>) &#8211; whether to use the in-memory plugin cache</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a dict of plugins, keyed by name</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name" colspan="2">Raises PluginException:</th></tr>
+<tr><td>&nbsp;</td><td class="field-body"><p class="first last">no plugins could be found for the given interface</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="beta.plugin.retrieve_named_plugins">
+<tt class="descclassname">beta.plugin.</tt><tt class="descname">retrieve_named_plugins</tt><big>(</big><em>interface</em>, <em>names</em><big>)</big><a class="headerlink" href="#beta.plugin.retrieve_named_plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look up a list of plugins by name.</p>
+<p>Plugins are returned in the same order as their names.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>interface</strong> (<em>interface</em>) &#8211; the interface to use</li>
+<li><strong>names</strong> (<em>list</em>) &#8211; plugins to find</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a list of plugins</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name" colspan="2">Raises PluginException:</th></tr>
+<tr><td>&nbsp;</td><td class="field-body"><p class="first last">no plugins could be found for the given interface</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ibeta.html"
+                        title="previous chapter">IBeta</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="protocol.html"
+                        title="next chapter">Protocol</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/plugin.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="protocol.html" title="Protocol"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ibeta.html" title="IBeta"
+             >previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" >Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>
