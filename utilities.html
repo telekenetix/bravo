@@ -60,14 +60,46 @@ critical code so that unit tests can be used to ensure a minimum of bugginess.</
 <dl class="function">
 <dt id="beta.utilities.split_coords">
 <tt class="descclassname">beta.utilities.</tt><tt class="descname">split_coords</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="headerlink" href="#beta.utilities.split_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given an absolute coordinate pair, return the split chunk and subchunk
-coordinates.</p>
+<dd><p>Split a pair of coordinates into chunk and subchunk coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>int</em>) &#8211; the X coordinate</li>
+<li><strong>z</strong> (<em>int</em>) &#8211; the Z coordinate</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple of the X chunk, X subchunk, Z chunk, and Z subchunk</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="beta.utilities.triplet_to_index">
 <tt class="descclassname">beta.utilities.</tt><tt class="descname">triplet_to_index</tt><big>(</big><em>coords</em><big>)</big><a class="headerlink" href="#beta.utilities.triplet_to_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given an x, y, z triplet, return the index into a 16x128x16 chunk.</p>
+<dd><p>Calculate the index for a set of subchunk coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coords</strong> (<em>tuple</em>) &#8211; X, Y, Z coordinates</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">integer index into chunk data</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name" colspan="2">Raises Exception:</th></tr>
+<tr><td>&nbsp;</td><td class="field-body"><p class="first last">the coordinates are out-of-bounds</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -77,12 +109,51 @@ coordinates.</p>
 <dl class="function">
 <dt id="beta.utilities.unpack_nibbles">
 <tt class="descclassname">beta.utilities.</tt><tt class="descname">unpack_nibbles</tt><big>(</big><em>l</em><big>)</big><a class="headerlink" href="#beta.utilities.unpack_nibbles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Unpack bytes into pairs of nibbles.</p>
+<p>Nibbles are half-byte quantities. The nibbles unpacked by this function
+are returned as unsigned numeric values.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">unpack_nibbles</span><span class="p">([</span><span class="s">&quot;a&quot;</span><span class="p">])</span>
+<span class="go">[6, 1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpack_nibbles</span><span class="p">(</span><span class="s">&quot;nibbles&quot;</span><span class="p">)</span>
+<span class="go">[6, 14, 6, 9, 6, 2, 6, 2, 6, 12, 6, 5, 7, 3]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong> (<em>list</em>) &#8211; bytes</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of nibbles</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="beta.utilities.pack_nibbles">
 <tt class="descclassname">beta.utilities.</tt><tt class="descname">pack_nibbles</tt><big>(</big><em>l</em><big>)</big><a class="headerlink" href="#beta.utilities.pack_nibbles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Pack pairs of nibbles into bytes.</p>
+<p>Bytes are returned as characters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong> (<em>list</em>) &#8211; nibbles to pack</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of bytes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="trigonometry">
@@ -90,12 +161,42 @@ coordinates.</p>
 <dl class="function">
 <dt id="beta.utilities.degs_to_rads">
 <tt class="descclassname">beta.utilities.</tt><tt class="descname">degs_to_rads</tt><big>(</big><em>degrees</em><big>)</big><a class="headerlink" href="#beta.utilities.degs_to_rads" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convert degrees to radians.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>degrees</strong> (<em>float</em>) &#8211; degrees</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float in radians</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="beta.utilities.rads_to_degs">
 <tt class="descclassname">beta.utilities.</tt><tt class="descname">rads_to_degs</tt><big>(</big><em>radians</em><big>)</big><a class="headerlink" href="#beta.utilities.rads_to_degs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convert radians to degrees.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>radians</strong> (<em>float</em>) &#8211; radians</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float in degrees</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="beta.utilities.rotated_cosine">
@@ -107,6 +208,23 @@ wavelength.</p>
 <p><img src="_images/math/21c6bfaa6dc454aa72f9c438dc14c59937105909.png" alt="f(x, y) = -\cos((x \cos\theta - y \sin\theta) / \lambda) / 2 + 1" /></p>
 </div><p>This function has a handful of useful properties; it has a local minimum
 at f(0, 0) and oscillates infinitely betwen 0 and 1.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>float</em>) &#8211; X coordinate</li>
+<li><strong>y</strong> (<em>float</em>) &#8211; Y coordinate</li>
+<li><strong>theta</strong> (<em>float</em>) &#8211; angle of rotation</li>
+<li><strong>lambda</strong> (<em>float</em>) &#8211; wavelength</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float of f(x, y)</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -123,6 +241,20 @@ directories as needed.</p>
 <p>XXX should handle corner cases
 XXX should mmap() when possible
 XXX should use Twisted&#8217;s VFS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) &#8211; NBT file to load</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><cite>NBTFile</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

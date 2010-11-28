@@ -59,6 +59,12 @@
 <dt id="beta.chunk.Chunk">
 <em class="property">class </em><tt class="descclassname">beta.chunk.</tt><tt class="descname">Chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="headerlink" href="#beta.chunk.Chunk" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
+<dt id="beta.chunk.Chunk.clear_damage">
+<tt class="descname">clear_damage</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.chunk.Chunk.clear_damage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear this chunk&#8217;s damage.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="beta.chunk.Chunk.flush">
 <tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.chunk.Chunk.flush" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the chunk&#8217;s data out to disk.</p>
@@ -71,9 +77,51 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="beta.chunk.Chunk.get_damage_packet">
+<tt class="descname">get_damage_packet</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.chunk.Chunk.get_damage_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a packet representing the current damage on this chunk.</p>
+<p>This method is not private, but some care should be taken with it,
+since it wraps some fairly cryptic internal data structures.</p>
+<p>If this chunk is currently undamaged, this method will return an empty
+string, which should be safe to treat as a packet. Please check with
+<cite>is_damaged()</cite> before doing this if you need to optimize this case.</p>
+<p>To avoid extra overhead, this method should really be used in
+conjunction with <cite>Factory.broadcast_for_chunk()</cite>.</p>
+<p>Do not forget to clear this chunk&#8217;s damage! Callers are responsible
+for doing this.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">packet</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get_damage_packet</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">factory</span><span class="o">.</span><span class="n">broadcast_for_chunk</span><span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">clear_damage</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">str representing a packet</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="beta.chunk.Chunk.height_at">
 <tt class="descname">height_at</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="headerlink" href="#beta.chunk.Chunk.height_at" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the height of an xz-column of blocks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beta.chunk.Chunk.is_damaged">
+<tt class="descname">is_damaged</tt><big>(</big><big>)</big><a class="headerlink" href="#beta.chunk.Chunk.is_damaged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether any damage is pending on this chunk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
