@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>IBeta &mdash; Beta v1.0 documentation</title>
+    <title>ibeta – Interfaces &mdash; Beta v1.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -25,7 +25,7 @@
     <link rel="top" title="Beta v1.0 documentation" href="index.html" />
     <link rel="up" title="Core" href="core.html" />
     <link rel="next" title="plugin – Plugin loaders" href="plugin.html" />
-    <link rel="prev" title="Factory" href="factory.html" /> 
+    <link rel="prev" title="factory – Twisted factory" href="factory.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,7 +38,7 @@
           <a href="plugin.html" title="plugin – Plugin loaders"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="factory.html" title="Factory"
+          <a href="factory.html" title="factory – Twisted factory"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
           <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
@@ -50,9 +50,12 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="ibeta">
-<h1>IBeta<a class="headerlink" href="#ibeta" title="Permalink to this headline">¶</a></h1>
-<p>Hurp interfaces hurp.</p>
+  <div class="section" id="ibeta-interfaces">
+<h1><tt class="docutils literal"><span class="pre">ibeta</span></tt> &#8211; Interfaces<a class="headerlink" href="#ibeta-interfaces" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">ibeta</span></tt> module holds the interfaces required to implement plugins and
+hooks.</p>
+<div class="section" id="plugins">
+<h2>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="beta.ibeta.IAuthenticator">
 <em class="property">class </em><tt class="descclassname">beta.ibeta.</tt><tt class="descname">IAuthenticator</tt><big>(</big><em>name</em>, <em>bases=()</em>, <em>attrs=None</em>, <em>__doc__=None</em>, <em>__module__=None</em><big>)</big><a class="headerlink" href="#beta.ibeta.IAuthenticator" title="Permalink to this definition">¶</a></dt>
@@ -82,6 +85,16 @@ environment.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beta.ibeta.IDigHook">
+<em class="property">class </em><tt class="descclassname">beta.ibeta.</tt><tt class="descname">IDigHook</tt><big>(</big><em>name</em>, <em>bases=()</em>, <em>attrs=None</em>, <em>__doc__=None</em>, <em>__module__=None</em><big>)</big><a class="headerlink" href="#beta.ibeta.IDigHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for actions to be taken after a block is dug up.</p>
+</dd></dl>
+
+</div>
+</div>
 
 
           </div>
@@ -89,9 +102,18 @@ environment.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">ibeta</span></tt> &#8211; Interfaces</a><ul>
+<li><a class="reference internal" href="#plugins">Plugins</a></li>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="factory.html"
-                        title="previous chapter">Factory</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">factory</span></tt> &#8211; Twisted factory</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="plugin.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">plugin</span></tt> &#8211; Plugin loaders</a></p>
@@ -127,7 +149,7 @@ environment.</p>
           <a href="plugin.html" title="plugin – Plugin loaders"
              >next</a> |</li>
         <li class="right" >
-          <a href="factory.html" title="Factory"
+          <a href="factory.html" title="factory – Twisted factory"
              >previous</a> |</li>
         <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
           <li><a href="core.html" >Core</a> &raquo;</li> 

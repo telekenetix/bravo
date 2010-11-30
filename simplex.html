@@ -1,0 +1,172 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>simplex – Simplex noise generation &mdash; Beta v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Beta v1.0 documentation" href="index.html" />
+    <link rel="up" title="Auxiliary" href="aux.html" />
+    <link rel="next" title="utilities – Helper functions" href="utilities.html" />
+    <link rel="prev" title="Auxiliary" href="aux.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="utilities.html" title="utilities – Helper functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aux.html" title="Auxiliary"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="aux.html" accesskey="U">Auxiliary</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simplex-simplex-noise-generation">
+<h1><tt class="docutils literal"><span class="pre">simplex</span></tt> &#8211; Simplex noise generation<a class="headerlink" href="#simplex-simplex-noise-generation" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="beta.simplex.reseed">
+<tt class="descclassname">beta.simplex.</tt><tt class="descname">reseed</tt><big>(</big><em>seed</em><big>)</big><a class="headerlink" href="#beta.simplex.reseed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reseed the simplex gradient field.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beta.simplex.simplex">
+<tt class="descclassname">beta.simplex.</tt><tt class="descname">simplex</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#beta.simplex.simplex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate simplex noise at the given coordinates.</p>
+<p>This particular implementation has very high chaotic features at normal
+resolution; zooming in by a factor of 16x to 256x is going to yield more
+pleasing results for most applications.</p>
+<p>The gradient field must be seeded prior to calling this function; call
+<cite>reseed()</cite> first.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>int</em>) &#8211; X coordinate</li>
+<li><strong>y</strong> (<em>int</em>) &#8211; Y coordinate</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">simplex noise</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name" colspan="2">Raises Exception:</th></tr>
+<tr><td>&nbsp;</td><td class="field-body"><p class="first last">the gradient field is not seeded</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="beta.simplex.octaves">
+<tt class="descclassname">beta.simplex.</tt><tt class="descname">octaves</tt><big>(</big><em>x</em>, <em>y</em>, <em>count</em><big>)</big><a class="headerlink" href="#beta.simplex.octaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate fractal octaves of noise.</p>
+<p>Summing increasingly scaled amounts of noise with itself creates fractal
+clouds of noise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>int</em>) &#8211; X coordinate</li>
+<li><strong>y</strong> (<em>int</em>) &#8211; Y coordinate</li>
+<li><strong>count</strong> (<em>int</em>) &#8211; number of octaves</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Scaled fractal noise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aux.html"
+                        title="previous chapter">Auxiliary</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="utilities.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">utilities</span></tt> &#8211; Helper functions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/simplex.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="utilities.html" title="utilities – Helper functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aux.html" title="Auxiliary"
+             >previous</a> |</li>
+        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+          <li><a href="aux.html" >Auxiliary</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>
