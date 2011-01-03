@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.stdio &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.stdio</h1><div class="highlight"><pre>
+<span class="c"># vim: set fileencoding=utf8 :</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="kn">from</span> <span class="nn">twisted.conch.insults.insults</span> <span class="kn">import</span> <span class="n">ServerProtocol</span>
+<span class="kn">from</span> <span class="nn">twisted.conch.manhole</span> <span class="kn">import</span> <span class="n">Manhole</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.stdio</span> <span class="kn">import</span> <span class="n">StandardIO</span>
+<span class="kn">from</span> <span class="nn">twisted.protocols.basic</span> <span class="kn">import</span> <span class="n">LineReceiver</span>
+
+<span class="kn">from</span> <span class="nn">bravo.config</span> <span class="kn">import</span> <span class="n">configuration</span>
+<span class="kn">from</span> <span class="nn">bravo.ibravo</span> <span class="kn">import</span> <span class="n">IConsoleCommand</span>
+<span class="kn">from</span> <span class="nn">bravo.plugin</span> <span class="kn">import</span> <span class="n">retrieve_plugins</span>
+<span class="kn">from</span> <span class="nn">bravo.utilities</span> <span class="kn">import</span> <span class="n">fancy_console_name</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">termios</span>
+    <span class="kn">import</span> <span class="nn">tty</span>
+    <span class="n">fancy_console</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">__stdin__</span><span class="o">.</span><span class="n">fileno</span><span class="p">())</span>
+    <span class="n">fancy_console</span> <span class="o">=</span> <span class="n">fancy_console</span> <span class="ow">and</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s">&quot;bravo&quot;</span><span class="p">,</span>
+        <span class="s">&quot;fancy_console&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">fancy_console</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="n">typeToColor</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;identifier&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[31m&#39;</span><span class="p">,</span>
+    <span class="s">&#39;keyword&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[32m&#39;</span><span class="p">,</span>
+    <span class="s">&#39;parameter&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[33m&#39;</span><span class="p">,</span>
+    <span class="s">&#39;variable&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[1;33m&#39;</span><span class="p">,</span>
+    <span class="s">&#39;string&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[35m&#39;</span><span class="p">,</span>
+    <span class="s">&#39;number&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[36m&#39;</span><span class="p">,</span>
+    <span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[37m&#39;</span>
+<span class="p">}</span>
+
+<span class="n">normalColor</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[0m&#39;</span>
+
+<div class="viewcode-block" id="run_command"><a class="viewcode-back" href="../../stdio.html#bravo.stdio.run_command">[docs]</a><span class="k">def</span> <span class="nf">run_command</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Single point of entry for the logic for running a command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">line</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">[</span><span class="n">command</span><span class="p">]</span><span class="o">.</span><span class="n">console_command</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">l</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+                <span class="k">yield</span> <span class="s">&quot;Error: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="s">&quot;Unknown command: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">command</span>
+</div>
+<span class="k">class</span> <span class="nc">BravoInterpreter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">factory</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="n">handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory</span> <span class="o">=</span> <span class="n">factory</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">commands</span> <span class="o">=</span> <span class="n">retrieve_plugins</span><span class="p">(</span><span class="n">IConsoleCommand</span><span class="p">)</span>
+        <span class="c"># Register aliases.</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">aliases</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+
+    <span class="k">def</span> <span class="nf">resetBuffer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle a command.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">run_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+            <span class="n">printable</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">l</span>
+            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">protocols</span><span class="p">:</span>
+                <span class="n">printable</span> <span class="o">=</span> <span class="n">printable</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">fancy_console_name</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+            <span class="c"># Have to encode to keep Unicode off the wire.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">addOutput</span><span class="p">(</span><span class="n">printable</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;utf8&quot;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">lastColorizedLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">typeToColor</span><span class="p">[</span><span class="s">&quot;number&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">token</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">typeToColor</span><span class="p">[</span><span class="s">&quot;keyword&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">token</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">protocols</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fancy_console_name</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalColor</span> <span class="o">+</span> <span class="n">token</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">normalColor</span> <span class="o">+</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BravoManhole"><a class="viewcode-back" href="../../stdio.html#bravo.stdio.BravoManhole">[docs]</a><span class="k">class</span> <span class="nc">BravoManhole</span><span class="p">(</span><span class="n">Manhole</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A console for TTYs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ps</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[1;37mBravo </span><span class="se">\x1b</span><span class="s">[0;37m&gt;</span><span class="se">\x1b</span><span class="s">[0;0m &quot;</span><span class="p">,</span> <span class="s">&quot;... &quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">Manhole</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">factory</span>
+
+    <span class="k">def</span> <span class="nf">connectionMade</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Manhole</span><span class="o">.</span><span class="n">connectionMade</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpreter</span> <span class="o">=</span> <span class="n">BravoInterpreter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c"># Borrowed from ColoredManhole, this colorizes input.</span>
+    <span class="k">def</span> <span class="nf">characterReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">moreCharactersComing</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;insert&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lineBuffer</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineBufferIndex</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lineBuffer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lineBufferIndex</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">lineBufferIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ch</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineBufferIndex</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">moreCharactersComing</span><span class="p">:</span>
+            <span class="c"># Skip it all, we&#39;ll get called with another character in like 2</span>
+            <span class="c"># femtoseconds.</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">ch</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+            <span class="c"># Don&#39;t bother to try to color whitespace</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">source</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineBuffer</span><span class="p">)</span>
+
+        <span class="c"># Try to write some junk</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">coloredLine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpreter</span><span class="o">.</span><span class="n">lastColorizedLine</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c"># We couldn&#39;t do it.  Strange.  Oh well, just add the character.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Success!  Clear the source on this line.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">eraseLine</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">cursorBackward</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineBuffer</span><span class="p">)</span> <span class="o">+</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pn</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="c"># And write a new, colorized one.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pn</span><span class="p">]</span> <span class="o">+</span> <span class="n">coloredLine</span><span class="p">)</span>
+
+            <span class="c"># And move the cursor to where it belongs</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineBuffer</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineBufferIndex</span>
+            <span class="k">if</span> <span class="n">n</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">cursorBackward</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+</div>
+<span class="n">greeting</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">Welcome to Beta!</span>
+<span class="s">This terminal has no fancy features.</span>
+<span class="s">&quot;&quot;&quot;</span>
+<span class="n">prompt</span> <span class="o">=</span> <span class="s">&quot;Bravo &gt; &quot;</span>
+
+<div class="viewcode-block" id="BravoConsole"><a class="viewcode-back" href="../../stdio.html#bravo.stdio.BravoConsole">[docs]</a><span class="k">class</span> <span class="nc">BravoConsole</span><span class="p">(</span><span class="n">LineReceiver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A console for things not quite as awesome as TTYs.</span>
+
+<span class="sd">    This console is extremely well-suited to Win32.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">delimiter</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory</span> <span class="o">=</span> <span class="n">factory</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">commands</span> <span class="o">=</span> <span class="n">retrieve_plugins</span><span class="p">(</span><span class="n">IConsoleCommand</span><span class="p">)</span>
+        <span class="c"># Register aliases.</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">aliases</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+
+    <span class="k">def</span> <span class="nf">connectionMade</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">lineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">run_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sendLine</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;utf8&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+
+<span class="c"># Cribbed from Twisted. This version doesn&#39;t try to start the reactor, or a</span>
+<span class="c"># handful of other things. At some point, this may no longer even look like</span>
+<span class="c"># Twisted code.</span>
+</div>
+<span class="k">if</span> <span class="n">fancy_console</span><span class="p">:</span>
+    <span class="n">oldSettings</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">start_console</span><span class="p">(</span><span class="n">factory</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">oldSettings</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdin__</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
+        <span class="n">oldSettings</span> <span class="o">=</span> <span class="n">termios</span><span class="o">.</span><span class="n">tcgetattr</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="n">tty</span><span class="o">.</span><span class="n">setraw</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">ServerProtocol</span><span class="p">(</span><span class="n">BravoManhole</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span>
+        <span class="n">StandardIO</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">p</span>
+
+    <span class="k">def</span> <span class="nf">stop_console</span><span class="p">():</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdin__</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
+        <span class="n">termios</span><span class="o">.</span><span class="n">tcsetattr</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TCSANOW</span><span class="p">,</span> <span class="n">oldSettings</span><span class="p">)</span>
+        <span class="c"># Took me forever to figure it out. This adorable little gem is</span>
+        <span class="c"># the control sequence RIS, which resets ANSI-compatible terminals</span>
+        <span class="c"># to their initial state. In the process, of course, they nuke all</span>
+        <span class="c"># of the stuff on the screen.</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\r\x1b</span><span class="s">c</span><span class="se">\r</span><span class="s">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">start_console</span><span class="p">(</span><span class="n">factory</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">BravoConsole</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span>
+        <span class="n">StandardIO</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">p</span>
+
+    <span class="k">def</span> <span class="nf">stop_console</span><span class="p">():</span>
+        <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>alpha – Alpha objects &mdash; Bravo v1.0 documentation</title>
+    <title>compat – Backwards compatibility &mdash; Bravo v1.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
-    <link rel="up" title="Core" href="core.html" />
-    <link rel="next" title="blocks – Block descriptions" href="blocks.html" />
-    <link rel="prev" title="Core" href="core.html" /> 
+    <link rel="up" title="Auxiliary" href="auxiliary.html" />
+    <link rel="next" title="simplex – Simplex noise generation" href="simplex.html" />
+    <link rel="prev" title="Auxiliary" href="auxiliary.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,13 +38,13 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="blocks.html" title="blocks – Block descriptions"
+          <a href="simplex.html" title="simplex – Simplex noise generation"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="core.html" title="Core"
+          <a href="auxiliary.html" title="Auxiliary"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
-          <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
+          <li><a href="auxiliary.html" accesskey="U">Auxiliary</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,31 +53,13 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="alpha-alpha-objects">
-<h1><tt class="docutils literal"><span class="pre">alpha</span></tt> &#8211; Alpha objects<a class="headerlink" href="#alpha-alpha-objects" title="Permalink to this headline">¶</a></h1>
-<p>The <tt class="docutils literal"><span class="pre">alpha</span></tt> module contains objects from the original Alpha implementations,
-as implemented in either the wire protocol or the on-disk format.</p>
-<span class="target" id="module-bravo.alpha"></span><dl class="class">
-<dt id="bravo.alpha.Location">
-<em class="property">class </em><tt class="descclassname">bravo.alpha.</tt><tt class="descname">Location</tt><a class="reference internal" href="_modules/bravo/alpha.html#Location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.alpha.Location" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>The position and orientation of an entity.</p>
-<dl class="method">
-<dt id="bravo.alpha.Location.load_from_packet">
-<tt class="descname">load_from_packet</tt><big>(</big><em>container</em><big>)</big><a class="reference internal" href="_modules/bravo/alpha.html#Location.load_from_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.alpha.Location.load_from_packet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update from a packet container.</p>
-<p>Position, look, and flying packets are all handled.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="bravo.alpha.Location.save_to_packet">
-<tt class="descname">save_to_packet</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bravo/alpha.html#Location.save_to_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.alpha.Location.save_to_packet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a position/look/flying packet.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
+  <div class="section" id="compat-backwards-compatibility">
+<h1><tt class="docutils literal"><span class="pre">compat</span></tt> &#8211; Backwards compatibility<a class="headerlink" href="#compat-backwards-compatibility" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">compat</span></tt> module provides library functions necessary for Python 2.5
+compatibility.</p>
+<p>It is highly recommended to only import functions from this module on an
+as-needed basis.</p>
+<span class="target" id="module-bravo.compat"></span></div>
 
 
           </div>
@@ -86,14 +68,14 @@ as implemented in either the wire protocol or the on-disk format.</p>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="core.html"
-                        title="previous chapter">Core</a></p>
+  <p class="topless"><a href="auxiliary.html"
+                        title="previous chapter">Auxiliary</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="blocks.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">blocks</span></tt> &#8211; Block descriptions</a></p>
+  <p class="topless"><a href="simplex.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">simplex</span></tt> &#8211; Simplex noise generation</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/alpha.txt"
+    <li><a href="_sources/compat.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -123,13 +105,13 @@ as implemented in either the wire protocol or the on-disk format.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="blocks.html" title="blocks – Block descriptions"
+          <a href="simplex.html" title="simplex – Simplex noise generation"
              >next</a> |</li>
         <li class="right" >
-          <a href="core.html" title="Core"
+          <a href="auxiliary.html" title="Auxiliary"
              >previous</a> |</li>
         <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
-          <li><a href="core.html" >Core</a> &raquo;</li> 
+          <li><a href="auxiliary.html" >Auxiliary</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

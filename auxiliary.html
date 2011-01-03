@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>alpha – Alpha objects &mdash; Bravo v1.0 documentation</title>
+    <title>Auxiliary &mdash; Bravo v1.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,9 +23,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
-    <link rel="up" title="Core" href="core.html" />
-    <link rel="next" title="blocks – Block descriptions" href="blocks.html" />
-    <link rel="prev" title="Core" href="core.html" /> 
+    <link rel="next" title="compat – Backwards compatibility" href="compat.html" />
+    <link rel="prev" title="world – Worlds" href="world.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,13 +37,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="blocks.html" title="blocks – Block descriptions"
+          <a href="compat.html" title="compat – Backwards compatibility"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="core.html" title="Core"
+          <a href="world.html" title="world – Worlds"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
-          <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
+        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,30 +51,21 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="alpha-alpha-objects">
-<h1><tt class="docutils literal"><span class="pre">alpha</span></tt> &#8211; Alpha objects<a class="headerlink" href="#alpha-alpha-objects" title="Permalink to this headline">¶</a></h1>
-<p>The <tt class="docutils literal"><span class="pre">alpha</span></tt> module contains objects from the original Alpha implementations,
-as implemented in either the wire protocol or the on-disk format.</p>
-<span class="target" id="module-bravo.alpha"></span><dl class="class">
-<dt id="bravo.alpha.Location">
-<em class="property">class </em><tt class="descclassname">bravo.alpha.</tt><tt class="descname">Location</tt><a class="reference internal" href="_modules/bravo/alpha.html#Location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.alpha.Location" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>The position and orientation of an entity.</p>
-<dl class="method">
-<dt id="bravo.alpha.Location.load_from_packet">
-<tt class="descname">load_from_packet</tt><big>(</big><em>container</em><big>)</big><a class="reference internal" href="_modules/bravo/alpha.html#Location.load_from_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.alpha.Location.load_from_packet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update from a packet container.</p>
-<p>Position, look, and flying packets are all handled.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="bravo.alpha.Location.save_to_packet">
-<tt class="descname">save_to_packet</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bravo/alpha.html#Location.save_to_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.alpha.Location.save_to_packet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a position/look/flying packet.</p>
-</dd></dl>
-
-</dd></dl>
-
+  <div class="section" id="auxiliary">
+<h1>Auxiliary<a class="headerlink" href="#auxiliary" title="Permalink to this headline">¶</a></h1>
+<p>Modules which do not contribute directly to the functionality of Bravo.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="compat.html"><tt class="docutils literal"><span class="pre">compat</span></tt> &#8211; Backwards compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simplex.html"><tt class="docutils literal"><span class="pre">simplex</span></tt> &#8211; Simplex noise generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html"><tt class="docutils literal"><span class="pre">utilities</span></tt> &#8211; Helper functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#coordinate-handling">Coordinate Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#data-packing">Data Packing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#trigonometry">Trigonometry</a></li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 
 
@@ -86,14 +75,14 @@ as implemented in either the wire protocol or the on-disk format.</p>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="core.html"
-                        title="previous chapter">Core</a></p>
+  <p class="topless"><a href="world.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">world</span></tt> &#8211; Worlds</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="blocks.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">blocks</span></tt> &#8211; Block descriptions</a></p>
+  <p class="topless"><a href="compat.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">compat</span></tt> &#8211; Backwards compatibility</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/alpha.txt"
+    <li><a href="_sources/auxiliary.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -123,13 +112,12 @@ as implemented in either the wire protocol or the on-disk format.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="blocks.html" title="blocks – Block descriptions"
+          <a href="compat.html" title="compat – Backwards compatibility"
              >next</a> |</li>
         <li class="right" >
-          <a href="core.html" title="Core"
+          <a href="world.html" title="world – Worlds"
              >previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
-          <li><a href="core.html" >Core</a> &raquo;</li> 
+        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

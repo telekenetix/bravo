@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.blocks &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.blocks</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">fractions</span> <span class="kn">import</span> <span class="n">Fraction</span>
+
+<div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../blocks.html#bravo.blocks.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A model for a block.</span>
+
+<span class="sd">    There are lots of rule and properties specific to different types of</span>
+<span class="sd">    blocks. This class encapsulates those properties in a singleton-style</span>
+<span class="sd">    interface, allowing many blocks to be referenced in one location.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&quot;drop&quot;</span><span class="p">,</span>
+        <span class="s">&quot;name&quot;</span><span class="p">,</span>
+        <span class="s">&quot;quantity&quot;</span><span class="p">,</span>
+        <span class="s">&quot;ratio&quot;</span><span class="p">,</span>
+        <span class="s">&quot;replace&quot;</span><span class="p">,</span>
+        <span class="s">&quot;slot&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">quantity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A block in a chunk.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            slot : int</span>
+<span class="sd">                The index of this block. Globally unique.</span>
+<span class="sd">            name : str</span>
+<span class="sd">                A common name for this block.</span>
+<span class="sd">            drop : int</span>
+<span class="sd">                The type of block that should be dropped when an instance of</span>
+<span class="sd">                this block is destroyed. Defaults to the slot value, to drop</span>
+<span class="sd">                instances of this same type of block.</span>
+<span class="sd">            replace : int</span>
+<span class="sd">                The type of block to place in the map when instances of this</span>
+<span class="sd">                block are destroyed. Defaults to air.</span>
+<span class="sd">            ratio : `Fraction`</span>
+<span class="sd">                The probability of this block dropping a block on destruction,</span>
+<span class="sd">                or None if this block always drops a block when destroyed.</span>
+<span class="sd">            quantity : int</span>
+<span class="sd">                The number of blocks dropped when this block is destroyed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">slot</span> <span class="o">=</span> <span class="n">slot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="k">if</span> <span class="n">drop</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drop</span> <span class="o">=</span> <span class="n">slot</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drop</span> <span class="o">=</span> <span class="n">drop</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">replace</span> <span class="o">=</span> <span class="n">replace</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantity</span> <span class="o">=</span> <span class="n">quantity</span>
+</div>
+<span class="n">names</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&quot;air&quot;</span><span class="p">,</span>
+    <span class="s">&quot;stone&quot;</span><span class="p">,</span>
+    <span class="s">&quot;grass&quot;</span><span class="p">,</span>
+    <span class="s">&quot;dirt&quot;</span><span class="p">,</span>
+    <span class="s">&quot;cobblestone&quot;</span><span class="p">,</span>
+    <span class="s">&quot;wood&quot;</span><span class="p">,</span>
+    <span class="s">&quot;sapling&quot;</span><span class="p">,</span>
+    <span class="s">&quot;bedrock&quot;</span><span class="p">,</span>
+    <span class="s">&quot;water&quot;</span><span class="p">,</span>
+    <span class="s">&quot;spring&quot;</span><span class="p">,</span>
+    <span class="s">&quot;lava&quot;</span><span class="p">,</span>
+    <span class="s">&quot;lava-spring&quot;</span><span class="p">,</span>
+    <span class="s">&quot;sand&quot;</span><span class="p">,</span>
+    <span class="s">&quot;gravel&quot;</span><span class="p">,</span>
+    <span class="s">&quot;gold-ore&quot;</span><span class="p">,</span>
+    <span class="s">&quot;iron-ore&quot;</span><span class="p">,</span>
+    <span class="s">&quot;coal-ore&quot;</span><span class="p">,</span>
+    <span class="s">&quot;log&quot;</span><span class="p">,</span>
+    <span class="s">&quot;leaves&quot;</span><span class="p">,</span>
+    <span class="s">&quot;sponge&quot;</span><span class="p">,</span>
+    <span class="s">&quot;glass&quot;</span><span class="p">,</span>
+    <span class="s">&quot;red-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;orange-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;yellow-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;lime-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;green-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;aqua-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;cyan-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;blue-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;purple-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;indigo-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;violet-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;magenta-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;pink-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;black-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;grey-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;white-cloth&quot;</span><span class="p">,</span>
+    <span class="s">&quot;flower&quot;</span><span class="p">,</span>
+    <span class="s">&quot;rose&quot;</span><span class="p">,</span>
+    <span class="s">&quot;brown-mushroom&quot;</span><span class="p">,</span>
+    <span class="s">&quot;red-mushroom&quot;</span><span class="p">,</span>
+    <span class="s">&quot;gold&quot;</span><span class="p">,</span>
+    <span class="s">&quot;iron&quot;</span><span class="p">,</span>
+    <span class="s">&quot;double-step&quot;</span><span class="p">,</span>
+    <span class="s">&quot;step&quot;</span><span class="p">,</span>
+    <span class="s">&quot;brick&quot;</span><span class="p">,</span>
+    <span class="s">&quot;tnt&quot;</span><span class="p">,</span>
+    <span class="s">&quot;bookshelf&quot;</span><span class="p">,</span>
+    <span class="s">&quot;mossy-cobblestone&quot;</span><span class="p">,</span>
+    <span class="s">&quot;obsidian&quot;</span><span class="p">,</span>
+    <span class="s">&quot;torch&quot;</span><span class="p">,</span>
+    <span class="s">&quot;fire&quot;</span><span class="p">,</span>
+    <span class="s">&quot;mob-spawner&quot;</span><span class="p">,</span>
+    <span class="s">&quot;wooden-stairs&quot;</span><span class="p">,</span>
+    <span class="s">&quot;chest&quot;</span><span class="p">,</span>
+    <span class="s">&quot;redstone-wire&quot;</span><span class="p">,</span>
+    <span class="s">&quot;diamond-ore&quot;</span><span class="p">,</span>
+    <span class="s">&quot;diamond&quot;</span><span class="p">,</span>
+    <span class="s">&quot;workbench&quot;</span><span class="p">,</span>
+    <span class="s">&quot;crops&quot;</span><span class="p">,</span>
+    <span class="s">&quot;soil&quot;</span><span class="p">,</span>
+    <span class="s">&quot;furnace&quot;</span><span class="p">,</span>
+    <span class="s">&quot;burning-furnace&quot;</span><span class="p">,</span>
+    <span class="s">&quot;signpost&quot;</span><span class="p">,</span>
+    <span class="s">&quot;wooden-door&quot;</span><span class="p">,</span>
+    <span class="s">&quot;ladder&quot;</span><span class="p">,</span>
+    <span class="s">&quot;tracks&quot;</span><span class="p">,</span>
+    <span class="s">&quot;stone-stairs&quot;</span><span class="p">,</span>
+    <span class="s">&quot;wall-sign&quot;</span><span class="p">,</span>
+    <span class="s">&quot;lever&quot;</span><span class="p">,</span>
+    <span class="s">&quot;stone-plate&quot;</span><span class="p">,</span>
+    <span class="s">&quot;iron-door&quot;</span><span class="p">,</span>
+    <span class="s">&quot;wooden-plate&quot;</span><span class="p">,</span>
+    <span class="s">&quot;redstone-ore&quot;</span><span class="p">,</span>
+    <span class="s">&quot;glowing-redstone-ore&quot;</span><span class="p">,</span>
+    <span class="s">&quot;redstone-torch&quot;</span><span class="p">,</span>
+    <span class="s">&quot;redstone-torch-on&quot;</span><span class="p">,</span>
+    <span class="s">&quot;stone-button&quot;</span><span class="p">,</span>
+    <span class="s">&quot;snow&quot;</span><span class="p">,</span>
+    <span class="s">&quot;ice&quot;</span><span class="p">,</span>
+    <span class="s">&quot;snow-block&quot;</span><span class="p">,</span>
+    <span class="s">&quot;cactus&quot;</span><span class="p">,</span>
+    <span class="s">&quot;clay&quot;</span><span class="p">,</span>
+    <span class="s">&quot;reed&quot;</span><span class="p">,</span>
+    <span class="s">&quot;jukebox&quot;</span><span class="p">,</span>
+    <span class="s">&quot;fence&quot;</span><span class="p">,</span>
+    <span class="s">&quot;pumpkin&quot;</span><span class="p">,</span>
+    <span class="s">&quot;brimstone&quot;</span><span class="p">,</span>
+    <span class="s">&quot;slow-sand&quot;</span><span class="p">,</span>
+    <span class="s">&quot;lightstone&quot;</span><span class="p">,</span>
+    <span class="s">&quot;portal&quot;</span><span class="p">,</span>
+    <span class="s">&quot;jack-o-lantern&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">drops</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c"># Block -&gt; block drops.</span>
+<span class="c"># If the drop block is zero, then it drops nothing.</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">4</span>  <span class="c"># Stone           -&gt; Cobblestone</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">3</span>  <span class="c"># Grass           -&gt; Dirt</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c"># Leaves          -&gt; Sapling</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Glass</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">60</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c"># Soil            -&gt; Dirt</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">62</span><span class="p">]</span> <span class="o">=</span> <span class="mi">61</span> <span class="c"># Burning Furnace -&gt; Furnace</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">78</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Snow</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">79</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Ice</span>
+
+<span class="c"># Block -&gt; item drops.</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span> <span class="o">=</span> <span class="mi">263</span> <span class="c"># Coal Ore Block    -&gt; Coal</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">56</span><span class="p">]</span> <span class="o">=</span> <span class="mi">264</span> <span class="c"># Diamond Ore Block -&gt; Diamond</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">63</span><span class="p">]</span> <span class="o">=</span> <span class="mi">323</span> <span class="c"># Sign Post         -&gt; Sign Item</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">64</span><span class="p">]</span> <span class="o">=</span> <span class="mi">324</span> <span class="c"># Wooden Door       -&gt; Wooden Door Item</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">68</span><span class="p">]</span> <span class="o">=</span> <span class="mi">323</span> <span class="c"># Wall Sign         -&gt; Sign Item</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">71</span><span class="p">]</span> <span class="o">=</span> <span class="mi">330</span> <span class="c"># Iron Door         -&gt; Iron Door Item</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">73</span><span class="p">]</span> <span class="o">=</span> <span class="mi">331</span> <span class="c"># Redstone Ore      -&gt; Redstone Dust</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">74</span><span class="p">]</span> <span class="o">=</span> <span class="mi">331</span> <span class="c"># Redstone Ore      -&gt; Redstone Dust</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">83</span><span class="p">]</span> <span class="o">=</span> <span class="mi">338</span> <span class="c"># Reed              -&gt; Reed Item</span>
+<span class="n">drops</span><span class="p">[</span><span class="mi">89</span><span class="p">]</span> <span class="o">=</span> <span class="mi">348</span> <span class="c"># Lightstone        -&gt; Lightstone Dust</span>
+
+<span class="n">replaces</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">replaces</span><span class="p">[</span><span class="mi">79</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span> <span class="c"># Ice -&gt; Water</span>
+
+<span class="n">ratios</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">ratios</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span> <span class="c"># Leaves</span>
+
+<span class="n">quantities</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">quantities</span><span class="p">[</span><span class="mi">73</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span> <span class="c"># Redstone Ore -&gt; Redstone Dust</span>
+<span class="n">quantities</span><span class="p">[</span><span class="mi">74</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span> <span class="c"># Redstone Ore -&gt; Redstone Dust</span>
+
+<span class="n">blocks</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A dictionary of ``Block`` objects.</span>
+
+<span class="sd">This dictionary can be indexed by slot number or block name.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">drops</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;drop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">drops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">replaces</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;replace&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">replaces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ratios</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;ratio&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ratios</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">quantities</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;quantity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quantities</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">blocks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+    <span class="n">blocks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

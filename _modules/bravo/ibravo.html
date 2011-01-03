@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.ibravo &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.ibravo</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">zope.interface</span> <span class="kn">import</span> <span class="n">Interface</span><span class="p">,</span> <span class="n">Attribute</span>
+
+<div class="viewcode-block" id="IAuthenticator"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.IAuthenticator">[docs]</a><span class="k">class</span> <span class="nc">IAuthenticator</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface for authenticators.</span>
+
+<span class="sd">    Authenticators participate in a two-step login process with a handshake.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">handshake</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle a handshake.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle a login.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        The name of the plugin.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ITerrainGenerator"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.ITerrainGenerator">[docs]</a><span class="k">class</span> <span class="nc">ITerrainGenerator</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface for terrain generators.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">populate</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a chunk and a seed value, populate the chunk with terrain.</span>
+
+<span class="sd">        This function should assume that it runs as part of a pipeline, and</span>
+<span class="sd">        that the chunk may already be partially or totally populated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        The name of the plugin.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+</div>
+<span class="k">class</span> <span class="nc">ICommand</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        The name of the plugin.</span>
+
+<span class="s">        Command names are also used as the keyword for this command.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">aliases</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Additional keywords which may be used to alias this command.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">usage</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        String explaining how to use this command.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        String explaining what this command does and returns.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IChatCommand"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.IChatCommand">[docs]</a><span class="k">class</span> <span class="nc">IChatCommand</span><span class="p">(</span><span class="n">ICommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface for chat commands.</span>
+
+<span class="sd">    Chat commands are invoked from the chat inside clients, so they are always</span>
+<span class="sd">    called by a specific client.</span>
+
+<span class="sd">    This interface is specifically designed to exist comfortably side-by-side</span>
+<span class="sd">    with `IConsoleCommand`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">chat_command</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle a command from the chat interface.</span>
+
+<span class="sd">        :param `BetaFactory` factory: factory for this world</span>
+<span class="sd">        :param str username: username of player</span>
+<span class="sd">        :param list parameters: additional parameters passed to the command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="IConsoleCommand"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.IConsoleCommand">[docs]</a><span class="k">class</span> <span class="nc">IConsoleCommand</span><span class="p">(</span><span class="n">ICommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface for console commands.</span>
+
+<span class="sd">    Console commands are invoked from a console or some other location with</span>
+<span class="sd">    two defining attributes: Access restricted to superusers, and no user</span>
+<span class="sd">    issuing the command. As such, no access control list applies to them, but</span>
+<span class="sd">    they must be given usernames to operate on explicitly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">console_command</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle a command.</span>
+
+<span class="sd">        :param `BetaFactory` factory: factory for this world</span>
+<span class="sd">        :param list parameters: additional parameters passed to the command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="ISeason"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.ISeason">[docs]</a><span class="k">class</span> <span class="nc">ISeason</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Seasons are transformational stages run during certain days to emulate an</span>
+<span class="sd">    environment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">chunk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the season to the given chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Name of the season.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">day</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Day of the year on which to switch to this season.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBuildHook"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.IBuildHook">[docs]</a><span class="k">class</span> <span class="nc">IBuildHook</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hook for actions to be taken after a block is placed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">build_hook</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">builddata</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Do things.</span>
+
+<span class="sd">        The ``builddata`` tuple has all of the useful things. It stores a</span>
+<span class="sd">        ``Block`` that will be placed, as well as the block coordinates and</span>
+<span class="sd">        face of the place where the block will be built.</span>
+
+<span class="sd">        ``builddata`` needs to be passed to the next hook in sequence, but it</span>
+<span class="sd">        can be modified in passing in order to modify the way blocks are</span>
+<span class="sd">        placed.</span>
+
+<span class="sd">        Any access to chunks must be done through the factory.</span>
+
+<span class="sd">        The second variable in the return value indicates whether processing</span>
+<span class="sd">        of building should continue after this hook runs. Use it to halt build</span>
+<span class="sd">        hook processing, if needed.</span>
+
+<span class="sd">        A trivial do-nothing build hook looks like the following:</span>
+
+<span class="sd">        &gt;&gt;&gt; def build_hook(self, factory, builddata):</span>
+<span class="sd">        ...     return True, builddata</span>
+
+<span class="sd">        :param `Factory` factory: factory</span>
+<span class="sd">        :param namedtuple builddata: permanent building location and data</span>
+
+<span class="sd">        :returns: tuple of build data and whether subsequent hooks will run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Name of the hook.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IDigHook"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.IDigHook">[docs]</a><span class="k">class</span> <span class="nc">IDigHook</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hook for actions to be taken after a block is dug up.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">dig_hook</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Do things.</span>
+
+<span class="sd">        :param `Factory` factory: factory</span>
+<span class="sd">        :param `Chunk` chunk: digging location</span>
+<span class="sd">        :param int x: X coordinate</span>
+<span class="sd">        :param int y: Y coordinate</span>
+<span class="sd">        :param int z: Z coordinate</span>
+<span class="sd">        :param `Block` block: dug block</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Name of the hook.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

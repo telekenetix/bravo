@@ -1,0 +1,160 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.plugin &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.plugin</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">twisted.plugin</span> <span class="kn">import</span> <span class="n">getPlugins</span>
+
+<span class="kn">from</span> <span class="nn">zope.interface.exceptions</span> <span class="kn">import</span> <span class="n">BrokenImplementation</span>
+<span class="kn">from</span> <span class="nn">zope.interface.exceptions</span> <span class="kn">import</span> <span class="n">BrokenMethodImplementation</span>
+<span class="kn">from</span> <span class="nn">zope.interface.verify</span> <span class="kn">import</span> <span class="n">verifyObject</span>
+
+<span class="kn">import</span> <span class="nn">bravo.plugins</span>
+
+<div class="viewcode-block" id="PluginException"><a class="viewcode-back" href="../../plugin.html#bravo.plugin.PluginException">[docs]</a><span class="k">class</span> <span class="nc">PluginException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Signal an error encountered during plugin handling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="retrieve_plugins"><a class="viewcode-back" href="../../plugin.html#bravo.plugin.retrieve_plugins">[docs]</a><span class="k">def</span> <span class="nf">retrieve_plugins</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">cached</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Look up all plugins for a certain interface.</span>
+
+<span class="sd">    If the plugin cache is enabled, this function will not attempt to reload</span>
+<span class="sd">    plugins from disk or discover new plugins.</span>
+
+<span class="sd">    :param interface interface: the interface to use</span>
+<span class="sd">    :param bool cached: whether to use the in-memory plugin cache</span>
+
+<span class="sd">    :returns: a dict of plugins, keyed by name</span>
+<span class="sd">    :raises PluginException: no plugins could be found for the given interface</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">cached</span> <span class="ow">and</span> <span class="n">interface</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span>
+
+    <span class="k">print</span> <span class="s">&quot;Discovering </span><span class="si">%s</span><span class="s">...&quot;</span> <span class="o">%</span> <span class="n">interface</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">getPlugins</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">bravo</span><span class="o">.</span><span class="n">plugins</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">verifyObject</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s">&quot; ( ^^) Plugin: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">except</span> <span class="n">BrokenImplementation</span><span class="p">,</span> <span class="n">bi</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s">&quot; ( ~~) Plugin </span><span class="si">%s</span><span class="s"> is missing attribute </span><span class="se">\&quot;\&quot;</span><span class="s">!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">bi</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot; ( &gt;&amp;) Plugin </span><span class="si">%s</span><span class="s"> is useless!&quot;</span> <span class="o">%</span> <span class="n">p</span>
+        <span class="k">except</span> <span class="n">BrokenMethodImplementation</span><span class="p">,</span> <span class="n">bmi</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot; ( Oo) Plugin </span><span class="si">%s</span><span class="s"> has a broken </span><span class="si">%s</span><span class="s">()!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">bmi</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
+            <span class="k">print</span> <span class="n">bmi</span>
+
+    <span class="n">cache</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="k">return</span> <span class="n">d</span>
+</div>
+<div class="viewcode-block" id="retrieve_named_plugins"><a class="viewcode-back" href="../../plugin.html#bravo.plugin.retrieve_named_plugins">[docs]</a><span class="k">def</span> <span class="nf">retrieve_named_plugins</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Look up a list of plugins by name.</span>
+
+<span class="sd">    Plugins are returned in the same order as their names.</span>
+
+<span class="sd">    :param interface interface: the interface to use</span>
+<span class="sd">    :param list names: plugins to find</span>
+
+<span class="sd">    :returns: a list of plugins</span>
+<span class="sd">    :raises PluginException: no plugins could be found for the given interface</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">retrieve_plugins</span><span class="p">(</span><span class="n">interface</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PluginException</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find plugin </span><span class="si">%s</span><span class="s"> for interface </span><span class="si">%s</span><span class="s">!&quot;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">interface</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

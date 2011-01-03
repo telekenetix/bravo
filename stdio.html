@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>stdio – Console support &mdash; Beta v1.0 documentation</title>
+    <title>stdio – Console support &mdash; Bravo v1.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Beta v1.0 documentation" href="index.html" />
+    <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
     <link rel="up" title="Core" href="core.html" />
     <link rel="next" title="world – Worlds" href="world.html" />
     <link rel="prev" title="protocol – Twisted protocol" href="protocol.html" /> 
@@ -35,12 +35,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="world.html" title="world – Worlds"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="protocol.html" title="protocol – Twisted protocol"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
           <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
       </ul>
     </div>  
@@ -54,10 +57,26 @@
 <h1><tt class="docutils literal"><span class="pre">stdio</span></tt> &#8211; Console support<a class="headerlink" href="#stdio-console-support" title="Permalink to this headline">¶</a></h1>
 <p>The <tt class="docutils literal"><span class="pre">stdio</span></tt> module provides a non-blocking, interactive console for
 administration, diagnostics, and debugging of running servers.</p>
+<span class="target" id="module-bravo.stdio"></span><dl class="class">
+<dt id="bravo.stdio.BravoConsole">
+<em class="property">class </em><tt class="descclassname">bravo.stdio.</tt><tt class="descname">BravoConsole</tt><big>(</big><em>factory</em><big>)</big><a class="reference internal" href="_modules/bravo/stdio.html#BravoConsole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.stdio.BravoConsole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">twisted.protocols.basic.LineReceiver</span></tt></p>
+<p>A console for things not quite as awesome as TTYs.</p>
+<p>This console is extremely well-suited to Win32.</p>
+</dd></dl>
+
 <dl class="class">
-<dt id="beta.stdio.Console">
-<em class="property">class </em><tt class="descclassname">beta.stdio.</tt><tt class="descname">Console</tt><a class="headerlink" href="#beta.stdio.Console" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="bravo.stdio.BravoManhole">
+<em class="property">class </em><tt class="descclassname">bravo.stdio.</tt><tt class="descname">BravoManhole</tt><big>(</big><em>factory</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/bravo/stdio.html#BravoManhole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.stdio.BravoManhole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">twisted.conch.manhole.Manhole</span></tt></p>
+<p>A console for TTYs.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bravo.stdio.run_command">
+<tt class="descclassname">bravo.stdio.</tt><tt class="descname">run_command</tt><big>(</big><em>commands</em>, <em>factory</em>, <em>line</em><big>)</big><a class="reference internal" href="_modules/bravo/stdio.html#run_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.stdio.run_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single point of entry for the logic for running a command.</p>
+</dd></dl>
 
 </div>
 
@@ -69,7 +88,7 @@ administration, diagnostics, and debugging of running servers.</p>
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="protocol.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">protocol</span></tt> &#8211; Twisted protocol</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">protocol</span></tt> &#8211; Twisted protocol</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="world.html"
                         title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">world</span></tt> &#8211; Worlds</a></p>
@@ -102,12 +121,15 @@ administration, diagnostics, and debugging of running servers.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="world.html" title="world – Worlds"
              >next</a> |</li>
         <li class="right" >
           <a href="protocol.html" title="protocol – Twisted protocol"
              >previous</a> |</li>
-        <li><a href="index.html">Beta v1.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
           <li><a href="core.html" >Core</a> &raquo;</li> 
       </ul>
     </div>

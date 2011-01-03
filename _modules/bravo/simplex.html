@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.simplex &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.simplex</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">Random</span>
+
+<span class="kn">from</span> <span class="nn">bravo.compat</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">permutations</span>
+
+<span class="n">SIZE</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">10</span>
+
+<span class="n">edges2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+    <span class="nb">set</span><span class="p">(</span>
+        <span class="n">chain</span><span class="p">(</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">edges2</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+<span class="n">edges3</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+    <span class="nb">set</span><span class="p">(</span>
+        <span class="n">chain</span><span class="p">(</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="n">permutations</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">edges3</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+<div class="viewcode-block" id="dot"><a class="viewcode-back" href="../../simplex.html#bravo.simplex.dot">[docs]</a><span class="k">def</span> <span class="nf">dot</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dot product of two vectors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">j</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="reseed"><a class="viewcode-back" href="../../simplex.html#bravo.simplex.reseed">[docs]</a><span class="k">def</span> <span class="nf">reseed</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reseed the simplex gradient field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">p</span><span class="p">,</span> <span class="n">current_seed</span>
+
+    <span class="k">if</span> <span class="n">current_seed</span> <span class="o">==</span> <span class="n">seed</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">SIZE</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">Random</span><span class="p">()</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">*=</span> <span class="mi">2</span>
+</div>
+<span class="n">p</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">current_seed</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="n">f2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="o">/</span> <span class="mi">6</span>
+
+<div class="viewcode-block" id="simplex2"><a class="viewcode-back" href="../../simplex.html#bravo.simplex.simplex2">[docs]</a><span class="k">def</span> <span class="nf">simplex2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate simplex noise at the given coordinates.</span>
+
+<span class="sd">    This particular implementation has very high chaotic features at normal</span>
+<span class="sd">    resolution; zooming in by a factor of 16x to 256x is going to yield more</span>
+<span class="sd">    pleasing results for most applications.</span>
+
+<span class="sd">    The gradient field must be seeded prior to calling this function; call</span>
+<span class="sd">    ``reseed()`` first.</span>
+
+<span class="sd">    :param int x: X coordinate</span>
+<span class="sd">    :param int y: Y coordinate</span>
+
+<span class="sd">    :returns: simplex noise</span>
+<span class="sd">    :raises Exception: the gradient field is not seeded</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;The gradient field is unseeded!&quot;</span><span class="p">)</span>
+
+    <span class="c"># Set up our scalers and arrays.</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+    <span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+
+    <span class="c"># XXX ???</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">f2</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">g2</span>
+    <span class="n">unskewed</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">t</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="n">t</span>
+
+    <span class="c"># Clamp to the size of the simplex array.</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="n">SIZE</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">j</span> <span class="o">%</span> <span class="n">SIZE</span>
+
+    <span class="c"># Look up coordinates and gradients for each contributing point in the</span>
+    <span class="c"># simplex space.</span>
+    <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">unskewed</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span> <span class="o">-</span> <span class="n">unskewed</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">%</span> <span class="mi">12</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">y</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g2</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">g2</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>    <span class="p">]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">g2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g2</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">g2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">g2</span>
+    <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">%</span> <span class="mi">12</span>
+
+    <span class="c"># Do our summation.</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">coord</span><span class="p">,</span> <span class="n">gradient</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">gradients</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">*=</span> <span class="n">t</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">dot</span><span class="p">(</span><span class="n">edges2</span><span class="p">[</span><span class="n">gradient</span><span class="p">],</span> <span class="n">coord</span><span class="p">)</span>
+
+    <span class="c"># Where&#39;s this scaling factor come from?</span>
+    <span class="k">return</span> <span class="n">n</span> <span class="o">*</span> <span class="mi">70</span>
+</div>
+<div class="viewcode-block" id="simplex3"><a class="viewcode-back" href="../../simplex.html#bravo.simplex.simplex3">[docs]</a><span class="k">def</span> <span class="nf">simplex3</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate simplex noise at the given coordinates.</span>
+
+<span class="sd">    This is a 3-dimensional flavor of ``simplex2()``; all of the same caveats</span>
+<span class="sd">    apply.</span>
+
+<span class="sd">    The gradient field must be seeded prior to calling this function; call</span>
+<span class="sd">    ``reseed()`` first.</span>
+
+<span class="sd">    :param int x: X coordinate</span>
+<span class="sd">    :param int y: Y coordinate</span>
+<span class="sd">    :param int z: Z coordinate</span>
+
+<span class="sd">    :returns: simplex noise</span>
+<span class="sd">    :raises Exception: the gradient field is not seeded or you broke the</span>
+<span class="sd">                       function somehow</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;The gradient field is unseeded!&quot;</span><span class="p">)</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">3</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">6</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
+    <span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">z</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">g</span>
+    <span class="n">unskewed</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">t</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="n">t</span><span class="p">,</span> <span class="n">k</span> <span class="o">-</span> <span class="n">t</span>
+
+    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="n">SIZE</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">j</span> <span class="o">%</span> <span class="n">SIZE</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">k</span> <span class="o">%</span> <span class="n">SIZE</span>
+
+    <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">unskewed</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span> <span class="o">-</span> <span class="n">unskewed</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span> <span class="o">-</span> <span class="n">unskewed</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+
+    <span class="c"># Do the coord and gradient lookups. Unrolled for speed and clarity.</span>
+    <span class="c"># These should be + 2 * g, but instead we do + f because we already have</span>
+    <span class="c"># it calculated. (2g == 2/6 == 1/3 == f)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="n">z</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">z</span>     <span class="o">+</span> <span class="n">g</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">z</span>     <span class="o">+</span> <span class="n">f</span>
+
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span>    <span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span>    <span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">z</span>     <span class="o">+</span> <span class="n">g</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span>
+
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span>    <span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">elif</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span>
+
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">elif</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">y</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span>
+
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">elif</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">z</span>     <span class="o">+</span> <span class="n">g</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span>
+
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span>    <span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">elif</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">z</span><span class="p">:</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>     <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">g</span><span class="p">,</span> <span class="n">z</span>     <span class="o">+</span> <span class="n">g</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">f</span><span class="p">,</span> <span class="n">z</span>     <span class="o">+</span> <span class="n">f</span>
+
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span>     <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span>    <span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span>    <span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;You broke maths. Good work.&quot;</span><span class="p">)</span>
+
+    <span class="n">coords</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.5</span>
+    <span class="n">gradients</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span> <span class="o">%</span> <span class="mi">12</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">coord</span><span class="p">,</span> <span class="n">gradient</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">gradients</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">-</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coord</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">coord</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">*=</span> <span class="n">t</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">dot</span><span class="p">(</span><span class="n">edges2</span><span class="p">[</span><span class="n">gradient</span><span class="p">],</span> <span class="n">coord</span><span class="p">)</span>
+
+    <span class="c"># Where&#39;s this scaling factor come from?</span>
+    <span class="k">return</span> <span class="n">n</span> <span class="o">*</span> <span class="mi">32</span>
+</div>
+<span class="k">def</span> <span class="nf">simplex</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">simplex2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">simplex3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Don&#39;t know how to do </span><span class="si">%d</span><span class="s">D noise!&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+<div class="viewcode-block" id="octaves2"><a class="viewcode-back" href="../../simplex.html#bravo.simplex.octaves2">[docs]</a><span class="k">def</span> <span class="nf">octaves2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate fractal octaves of noise.</span>
+
+<span class="sd">    Summing increasingly scaled amounts of noise with itself creates fractal</span>
+<span class="sd">    clouds of noise.</span>
+
+<span class="sd">    :param int x: X coordinate</span>
+<span class="sd">    :param int y: Y coordinate</span>
+<span class="sd">    :param int count: number of octaves</span>
+
+<span class="sd">    :returns: Scaled fractal noise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sigma</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">divisor</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">count</span><span class="p">:</span>
+        <span class="n">sigma</span> <span class="o">+=</span> <span class="n">simplex2</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">)</span> <span class="o">/</span> <span class="n">divisor</span>
+        <span class="n">divisor</span> <span class="o">*=</span> <span class="mi">2</span>
+        <span class="n">count</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">sigma</span>
+</div>
+<div class="viewcode-block" id="octaves3"><a class="viewcode-back" href="../../simplex.html#bravo.simplex.octaves3">[docs]</a><span class="k">def</span> <span class="nf">octaves3</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate fractal octaves of noise.</span>
+
+<span class="sd">    :param int x: X coordinate</span>
+<span class="sd">    :param int y: Y coordinate</span>
+<span class="sd">    :param int z: Z coordinate</span>
+<span class="sd">    :param int count: number of octaves</span>
+
+<span class="sd">    :returns: Scaled fractal noise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sigma</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">divisor</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">count</span><span class="p">:</span>
+        <span class="n">sigma</span> <span class="o">+=</span> <span class="n">simplex3</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">,</span> <span class="n">z</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">)</span> <span class="o">/</span> <span class="n">divisor</span>
+        <span class="n">divisor</span> <span class="o">*=</span> <span class="mi">2</span>
+        <span class="n">count</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">sigma</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

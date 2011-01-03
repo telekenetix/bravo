@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.factory &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.factory</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+
+<span class="kn">from</span> <span class="nn">twisted.internet.protocol</span> <span class="kn">import</span> <span class="n">Factory</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.task</span> <span class="kn">import</span> <span class="n">LoopingCall</span>
+
+<span class="kn">from</span> <span class="nn">bravo.config</span> <span class="kn">import</span> <span class="n">configuration</span>
+<span class="kn">from</span> <span class="nn">bravo.entity</span> <span class="kn">import</span> <span class="n">Pickup</span><span class="p">,</span> <span class="n">Player</span>
+<span class="kn">from</span> <span class="nn">bravo.ibravo</span> <span class="kn">import</span> <span class="n">IAuthenticator</span><span class="p">,</span> <span class="n">ISeason</span><span class="p">,</span> <span class="n">ITerrainGenerator</span>
+<span class="kn">from</span> <span class="nn">bravo.packets</span> <span class="kn">import</span> <span class="n">make_packet</span>
+<span class="kn">from</span> <span class="nn">bravo.plugin</span> <span class="kn">import</span> <span class="n">retrieve_named_plugins</span>
+<span class="kn">from</span> <span class="nn">bravo.protocol</span> <span class="kn">import</span> <span class="n">BetaProtocol</span>
+<span class="kn">from</span> <span class="nn">bravo.world</span> <span class="kn">import</span> <span class="n">World</span>
+
+<span class="kn">from</span> <span class="nn">bravo.plugin</span> <span class="kn">import</span> <span class="n">retrieve_plugins</span>
+
+<span class="p">(</span><span class="n">STATE_UNAUTHENTICATED</span><span class="p">,</span> <span class="n">STATE_CHALLENGED</span><span class="p">,</span> <span class="n">STATE_AUTHENTICATED</span><span class="p">,</span>
+    <span class="n">STATE_LOCATED</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BetaFactory"><a class="viewcode-back" href="../../factory.html#bravo.factory.BetaFactory">[docs]</a><span class="k">class</span> <span class="nc">BetaFactory</span><span class="p">(</span><span class="n">Factory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A ``Factory`` that creates ``BetaProtocol`` objects when connected to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">protocol</span> <span class="o">=</span> <span class="n">BetaProtocol</span>
+
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">day</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">world</span> <span class="o">=</span> <span class="n">World</span><span class="p">(</span><span class="s">&quot;world&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">world</span><span class="o">.</span><span class="n">factory</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocols</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_loop</span> <span class="o">=</span> <span class="n">LoopingCall</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_loop</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hooks</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">authenticator</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;bravo&quot;</span><span class="p">,</span> <span class="s">&quot;authenticator&quot;</span><span class="p">)</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="n">retrieve_named_plugins</span><span class="p">(</span><span class="n">IAuthenticator</span><span class="p">,</span> <span class="p">[</span><span class="n">authenticator</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">print</span> <span class="s">&quot;Using authenticator </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">selected</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hooks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">handshake</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hooks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">login</span>
+
+        <span class="n">generators</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;bravo&quot;</span><span class="p">,</span> <span class="s">&quot;generators&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">generators</span> <span class="o">=</span> <span class="n">retrieve_named_plugins</span><span class="p">(</span><span class="n">ITerrainGenerator</span><span class="p">,</span> <span class="n">generators</span><span class="p">)</span>
+
+        <span class="k">print</span> <span class="s">&quot;Using generators </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">generators</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">world</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">generators</span>
+
+        <span class="k">print</span> <span class="s">&quot;Factory init&#39;d&quot;</span>
+
+    <span class="k">def</span> <span class="nf">create_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eid</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c"># XXX use a dispatch dict</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&quot;Pickup&quot;</span><span class="p">:</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="n">Pickup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&quot;Player&quot;</span><span class="p">:</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="n">Player</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">entity</span>
+
+    <span class="k">def</span> <span class="nf">destroy_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BetaFactory.update_time"><a class="viewcode-back" href="../../factory.html#bravo.factory.BetaFactory.update_time">[docs]</a>    <span class="k">def</span> <span class="nf">update_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the in-game timer.</span>
+
+<span class="sd">        The timer goes from 0 to 24000, both of which are high noon. The clock</span>
+<span class="sd">        increments by 20 every second. Days are 20 minutes long.</span>
+
+<span class="sd">        The day clock is incremented every in-game day, which is every 20</span>
+<span class="sd">        minutes. The day clock goes from 0 to 360, which works out to a reset</span>
+<span class="sd">        once every 5 days. This is a Babylonian in-game year.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># First run since the start of the factory; re-init everything.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_season</span><span class="p">()</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">+=</span> <span class="mi">20</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">t</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">&gt;</span> <span class="mi">24000</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">-=</span> <span class="mi">24000</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">day</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">day</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">day</span> <span class="o">-=</span> <span class="mi">360</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_season</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="BetaFactory.update_season"><a class="viewcode-back" href="../../factory.html#bravo.factory.BetaFactory.update_season">[docs]</a>    <span class="k">def</span> <span class="nf">update_season</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the world&#39;s season.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">retrieve_plugins</span><span class="p">(</span><span class="n">ISeason</span><span class="p">)</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">plugin</span><span class="o">.</span><span class="n">day</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">day</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">world</span><span class="o">.</span><span class="n">season</span> <span class="o">=</span> <span class="n">plugin</span>
+</div>
+    <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packet</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocols</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
+            <span class="n">player</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BetaFactory.broadcast_for_chunk"><a class="viewcode-back" href="../../factory.html#bravo.factory.BetaFactory.broadcast_for_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">broadcast_for_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packet</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Broadcast a packet to all players that have a certain chunk loaded.</span>
+
+<span class="sd">        `x` and `z` are chunk coordinates, not block coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocols</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="n">player</span><span class="o">.</span><span class="n">chunks</span><span class="p">:</span>
+                <span class="n">player</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BetaFactory.entities_near"><a class="viewcode-back" href="../../factory.html#bravo.factory.BetaFactory.entities_near">[docs]</a>    <span class="k">def</span> <span class="nf">entities_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a coordinate and a radius, return all entities within that</span>
+<span class="sd">        radius of those coordinates.</span>
+
+<span class="sd">        All arguments should be in pixels, not blocks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">entity</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span>
+            <span class="k">if</span> <span class="n">sqrt</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">z</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="p">)</span> <span class="o">&lt;</span> <span class="n">radius</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="BetaFactory.give"><a class="viewcode-back" href="../../factory.html#bravo.factory.BetaFactory.give">[docs]</a>    <span class="k">def</span> <span class="nf">give</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">quantity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Spawn a pickup at the specified coordinates.</span>
+
+<span class="sd">        The coordinates need to be in pixels, not blocks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_entity</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="s">&quot;Pickup&quot;</span><span class="p">)</span>
+        <span class="n">entity</span><span class="o">.</span><span class="n">block</span> <span class="o">=</span> <span class="n">block</span>
+        <span class="n">entity</span><span class="o">.</span><span class="n">quantity</span> <span class="o">=</span> <span class="n">quantity</span>
+
+        <span class="n">packet</span> <span class="o">=</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;pickup&quot;</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">eid</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="n">block</span><span class="p">,</span>
+                <span class="n">count</span><span class="o">=</span><span class="n">quantity</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="n">yaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pitch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span>
+
+        <span class="n">packet</span> <span class="o">=</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;create&quot;</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

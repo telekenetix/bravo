@@ -1,0 +1,161 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>packets – Packet serializers &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
+    <link rel="up" title="Core" href="core.html" />
+    <link rel="next" title="plugin – Plugin loaders" href="plugin.html" />
+    <link rel="prev" title="ibravo – Interfaces" href="ibravo.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin.html" title="plugin – Plugin loaders"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ibravo.html" title="ibravo – Interfaces"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="packets-packet-serializers">
+<h1><tt class="docutils literal"><span class="pre">packets</span></tt> &#8211; Packet serializers<a class="headerlink" href="#packets-packet-serializers" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">packets</span></tt> module contains descriptions for all packets in the wire
+protocol, as well as several utility functions for encoding data to and
+decoding data from packets.</p>
+<span class="target" id="module-bravo.packets"></span><dl class="function">
+<dt id="bravo.packets.make_error_packet">
+<tt class="descclassname">bravo.packets.</tt><tt class="descname">make_error_packet</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="_modules/bravo/packets.html#make_error_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.packets.make_error_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to generate an error packet bytestream.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bravo.packets.make_packet">
+<tt class="descclassname">bravo.packets.</tt><tt class="descname">make_packet</tt><big>(</big><em>packet</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/bravo/packets.html#make_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.packets.make_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a packet bytestream from a packet header and payload.</p>
+<p>The payload should be passed as keyword arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bravo.packets.parse_packets">
+<tt class="descclassname">bravo.packets.</tt><tt class="descname">parse_packets</tt><big>(</big><em>bytestream</em><big>)</big><a class="reference internal" href="_modules/bravo/packets.html#parse_packets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.packets.parse_packets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opportunistically parse out as many packets as possible from a raw
+bytestream.</p>
+<p>Returns a tuple containing a list of unpacked packet containers, and any
+leftover unparseable bytes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bravo.packets.parse_packets_incrementally">
+<tt class="descclassname">bravo.packets.</tt><tt class="descname">parse_packets_incrementally</tt><big>(</big><em>bytestream</em><big>)</big><a class="reference internal" href="_modules/bravo/packets.html#parse_packets_incrementally"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.packets.parse_packets_incrementally" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse out packets one-by-one, yielding a tuple of packet header and packet
+payload.</p>
+<p>This function returns a generator.</p>
+<p>This function will yield all valid packets in the bytestream up to the
+first invalid packet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">a generator yielding tuples of headers and payloads</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ibravo.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">ibravo</span></tt> &#8211; Interfaces</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plugin.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">plugin</span></tt> &#8211; Plugin loaders</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/packets.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin.html" title="plugin – Plugin loaders"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ibravo.html" title="ibravo – Interfaces"
+             >previous</a> |</li>
+        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="core.html" >Core</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

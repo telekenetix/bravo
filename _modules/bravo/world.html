@@ -1,0 +1,333 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.world &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.world</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+
+<span class="kn">from</span> <span class="nn">twisted.internet.task</span> <span class="kn">import</span> <span class="n">LoopingCall</span>
+<span class="kn">from</span> <span class="nn">twisted.python.filepath</span> <span class="kn">import</span> <span class="n">FilePath</span>
+
+<span class="kn">from</span> <span class="nn">nbt.nbt</span> <span class="kn">import</span> <span class="n">NBTFile</span>
+
+<span class="kn">from</span> <span class="nn">bravo.chunk</span> <span class="kn">import</span> <span class="n">Chunk</span>
+<span class="kn">from</span> <span class="nn">bravo.serialize</span> <span class="kn">import</span> <span class="n">LevelSerializer</span>
+
+<div class="viewcode-block" id="base36"><a class="viewcode-back" href="../../world.html#bravo.world.base36">[docs]</a><span class="k">def</span> <span class="nf">base36</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the string representation of i in base 36, using lowercase letters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">letters</span> <span class="o">=</span> <span class="s">&quot;0123456789abcdefghijklmnopqrstuvwxyz&quot;</span>
+
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="o">-</span><span class="n">i</span>
+        <span class="n">signed</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;0&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">signed</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+    <span class="k">while</span> <span class="n">i</span><span class="p">:</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">digit</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">36</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">letters</span><span class="p">[</span><span class="n">digit</span><span class="p">]</span> <span class="o">+</span> <span class="n">s</span>
+
+    <span class="k">if</span> <span class="n">signed</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;-&quot;</span> <span class="o">+</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="n">s</span>
+</div>
+<div class="viewcode-block" id="World"><a class="viewcode-back" href="../../world.html#bravo.world.World">[docs]</a><span class="k">class</span> <span class="nc">World</span><span class="p">(</span><span class="n">LevelSerializer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object representing a world on disk.</span>
+
+<span class="sd">    Worlds are composed of levels and chunks, each of which corresponds to</span>
+<span class="sd">    exactly one file on disk. Worlds also contain saved player data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">season</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The current `ISeason`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">saving</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Whether objects belonging to this world may be written out to disk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a world from disk.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            folder : str</span>
+<span class="sd">                The directory containing the world.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">FilePath</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakValueDictionary</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="p">)</span>
+
+        <span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;level.dat&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">level</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">level</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">NBTFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">level</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
+
+        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">()</span>
+        <span class="n">tag</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">level</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_management_loop</span> <span class="o">=</span> <span class="n">LoopingCall</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_chunks</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_management_loop</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="World.sort_chunks"><a class="viewcode-back" href="../../world.html#bravo.world.World.sort_chunks">[docs]</a>    <span class="k">def</span> <span class="nf">sort_chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort out the internal caches.</span>
+
+<span class="sd">        This method will always block when there are dirty chunks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">first</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">all_chunks</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">)</span>
+        <span class="n">all_chunks</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">coords</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">all_chunks</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                    <span class="n">first</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">save_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">coords</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">[</span><span class="n">coords</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">coords</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+</div>
+<div class="viewcode-block" id="World.save_off"><a class="viewcode-back" href="../../world.html#bravo.world.World.save_off">[docs]</a>    <span class="k">def</span> <span class="nf">save_off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Disable saving to disk.</span>
+
+<span class="sd">        This is useful for accessing the world on disk without Bravo</span>
+<span class="sd">        interfering, for backing up the world.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">saving</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saving</span> <span class="o">=</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="World.save_on"><a class="viewcode-back" href="../../world.html#bravo.world.World.save_on">[docs]</a>    <span class="k">def</span> <span class="nf">save_on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enable saving to disk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saving</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakValueDictionary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saving</span> <span class="o">=</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="World.populate_chunk"><a class="viewcode-back" href="../../world.html#bravo.world.World.populate_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">populate_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recreate data for a chunk.</span>
+
+<span class="sd">        This method does arbitrary terrain generation depending on the current</span>
+<span class="sd">        plugins, and then regenerates the chunk metadata so that the chunk can</span>
+<span class="sd">        be sent to clients.</span>
+
+<span class="sd">        A lot of maths may be done by this method, so do not call it unless</span>
+<span class="sd">        absolutely necessary, e.g. when the chunk is created for the first</span>
+<span class="sd">        time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="p">:</span>
+            <span class="n">stage</span><span class="o">.</span><span class="n">populate</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="n">chunk</span><span class="o">.</span><span class="n">regenerate</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="World.load_chunk"><a class="viewcode-back" href="../../world.html#bravo.world.World.load_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">load_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve a `Chunk`.</span>
+
+<span class="sd">        This method does lots of automatic caching of chunks to ensure that</span>
+<span class="sd">        disk I/O is kept to a minimum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">Chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">z</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;c.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">base36</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="n">NBTFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">))</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">populated</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">populate_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">populated</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+
+        <span class="c"># Apply the current season to the chunk.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">season</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">season</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+        <span class="c"># Since this chunk hasn&#39;t been given to any player yet, there&#39;s no</span>
+        <span class="c"># conceivable way that any meaningful damage has been accumulated;</span>
+        <span class="c"># anybody loading any part of this chunk will want the entire thing.</span>
+        <span class="c"># Thus, it should start out undamaged.</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">clear_damage</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">chunk</span>
+</div>
+    <span class="k">def</span> <span class="nf">save_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">z</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">z</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;c.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">base36</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">()</span>
+        <span class="n">tag</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
+
+        <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="World.load_player"><a class="viewcode-back" href="../../world.html#bravo.world.World.load_player">[docs]</a>    <span class="k">def</span> <span class="nf">load_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve player data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">player</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">create_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s">&quot;Player&quot;</span><span class="p">)</span>
+
+        <span class="n">player</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">stance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">player</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;players&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="n">NBTFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">))</span>
+            <span class="n">player</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">player</span>
+</div>
+    <span class="k">def</span> <span class="nf">save_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;players&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">)</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">()</span>
+        <span class="n">tag</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bravo.chunk &mdash; Bravo v1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for bravo.chunk</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">int8</span><span class="p">,</span> <span class="n">uint8</span><span class="p">,</span> <span class="n">uint32</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">empty</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">zeros</span>
+
+<span class="kn">from</span> <span class="nn">bravo.compat</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">bravo.entity</span> <span class="kn">import</span> <span class="n">tile_entities</span>
+<span class="kn">from</span> <span class="nn">bravo.packets</span> <span class="kn">import</span> <span class="n">make_packet</span>
+<span class="kn">from</span> <span class="nn">bravo.serialize</span> <span class="kn">import</span> <span class="n">ChunkSerializer</span>
+<span class="kn">from</span> <span class="nn">bravo.utilities</span> <span class="kn">import</span> <span class="n">pack_nibbles</span>
+
+<span class="c"># Set up glow tables.</span>
+<span class="c"># These tables provide glow maps for illuminated points.</span>
+<span class="n">glow</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">15</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">glow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int8</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">glow</span><span class="p">[</span><span class="n">i</span><span class="p">][</span> <span class="n">x</span><span class="p">,</span>  <span class="n">y</span><span class="p">,</span>  <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">distance</span>
+    <span class="n">glow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cast</span><span class="p">[</span><span class="n">uint8</span><span class="p">](</span><span class="n">glow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Chunk"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk">[docs]</a><span class="k">class</span> <span class="nc">Chunk</span><span class="p">(</span><span class="n">ChunkSerializer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A chunk of blocks.</span>
+
+<span class="sd">    Chunks are large pieces of world geometry. The blocks, light maps, and</span>
+<span class="sd">    associated metadata are stored in chunks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Whether this chunk needs to be flushed to disk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">populated</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Whether this chunk has had its initial block data filled out.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tag</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The file backing this chunk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">known_tile_entities</span> <span class="o">=</span> <span class="n">tile_entities</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dirty hack to work around mutual recursion during serialization.</span>
+
+<span class="sd">    Odds are good that you don&#39;t actually want to know why this is necessary.</span>
+<span class="sd">    Ask me in person if you like, and then you can have some of my brain</span>
+<span class="sd">    bleach later.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the internal data structures for tracking and representing a</span>
+<span class="sd">        chunk.</span>
+
+<span class="sd">        Chunks are large pieces of block data, always measured 16x128x16 and</span>
+<span class="sd">        aligned on 16x16 boundaries in the xz-plane.</span>
+
+<span class="sd">        :param int x: X coordinate in chunk coords</span>
+<span class="sd">        :param int z: Z coordinate in chunk coords</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heightmap</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lightmap</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skylight</span> <span class="o">=</span> <span class="n">empty</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skylight</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mh">0xf</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tiles</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Array for tracking damaged coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flag for forcing the entire chunk to be damaged.</span>
+
+<span class="sd">        This is for efficiency; past a certain point, it is not efficient to</span>
+<span class="sd">        batch block updates or track damage. Heavily damaged chunks have their</span>
+<span class="sd">        damage represented as a complete resend of the entire chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;Chunk(</span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="n">__str__</span> <span class="o">=</span> <span class="n">__repr__</span>
+
+<div class="viewcode-block" id="Chunk.regenerate_heightmap"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.regenerate_heightmap">[docs]</a>    <span class="k">def</span> <span class="nf">regenerate_heightmap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Regenerate the height map.</span>
+
+<span class="sd">        The height map is merely the position of the tallest block in any</span>
+<span class="sd">        xz-column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">127</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]:</span>
+                    <span class="k">break</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">heightmap</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+</div>
+    <span class="k">def</span> <span class="nf">regenerate_lightmap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">regenerate_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="Chunk.regenerate_skylight"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.regenerate_skylight">[docs]</a>    <span class="k">def</span> <span class="nf">regenerate_skylight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Regenerate the ambient light map.</span>
+
+<span class="sd">        Each block&#39;s individual light comes from two sources. The ambient</span>
+<span class="sd">        light comes from the sky.</span>
+
+<span class="sd">        The height map must be valid for this method to produce valid results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ambient</span> <span class="o">=</span> <span class="n">glow</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+        <span class="n">lightmap</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">uint32</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heightmap</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+
+            <span class="n">sx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">14</span>
+            <span class="n">sy</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">14</span>
+            <span class="n">sz</span> <span class="o">=</span> <span class="n">z</span> <span class="o">-</span> <span class="mi">14</span>
+
+            <span class="n">ex</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">14</span>
+            <span class="n">ey</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">14</span>
+            <span class="n">ez</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">14</span>
+
+            <span class="n">si</span><span class="p">,</span> <span class="n">sj</span><span class="p">,</span> <span class="n">sk</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="n">ei</span><span class="p">,</span> <span class="n">ej</span><span class="p">,</span> <span class="n">ek</span> <span class="o">=</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span>
+
+            <span class="k">if</span> <span class="n">sx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sx</span><span class="p">,</span> <span class="n">si</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">sx</span>
+
+            <span class="k">if</span> <span class="n">sy</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sy</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">sy</span>
+
+            <span class="k">if</span> <span class="n">sz</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sz</span><span class="p">,</span> <span class="n">sk</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">sz</span>
+
+            <span class="k">if</span> <span class="n">ex</span> <span class="o">&gt;</span> <span class="mi">15</span><span class="p">:</span>
+                <span class="n">ex</span><span class="p">,</span> <span class="n">ei</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">ei</span> <span class="o">-</span> <span class="n">ex</span> <span class="o">+</span> <span class="mi">15</span>
+
+            <span class="k">if</span> <span class="n">ey</span> <span class="o">&gt;</span> <span class="mi">127</span><span class="p">:</span>
+                <span class="n">ey</span><span class="p">,</span> <span class="n">ej</span> <span class="o">=</span> <span class="mi">127</span><span class="p">,</span> <span class="n">ej</span> <span class="o">-</span> <span class="n">ey</span> <span class="o">+</span> <span class="mi">127</span>
+
+            <span class="k">if</span> <span class="n">ez</span> <span class="o">&gt;</span> <span class="mi">15</span><span class="p">:</span>
+                <span class="n">ez</span><span class="p">,</span> <span class="n">ek</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">ek</span> <span class="o">-</span> <span class="n">ez</span> <span class="o">+</span> <span class="mi">15</span>
+
+            <span class="c"># Blit!</span>
+            <span class="n">lightmap</span><span class="p">[</span><span class="n">sx</span><span class="p">:</span><span class="n">ex</span><span class="p">,</span> <span class="n">sz</span><span class="p">:</span><span class="n">ez</span><span class="p">,</span> <span class="n">sy</span><span class="p">:</span><span class="n">ey</span><span class="p">]</span> <span class="o">=</span> <span class="n">ambient</span><span class="p">[</span><span class="n">si</span><span class="p">:</span><span class="n">ei</span><span class="p">,</span> <span class="n">sk</span><span class="p">:</span><span class="n">ek</span><span class="p">,</span> <span class="n">sj</span><span class="p">:</span><span class="n">ej</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lightmap</span> <span class="o">=</span> <span class="n">cast</span><span class="p">[</span><span class="n">uint8</span><span class="p">](</span><span class="n">lightmap</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Chunk.regenerate"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.regenerate">[docs]</a>    <span class="k">def</span> <span class="nf">regenerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Regenerate all extraneous tables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">regenerate_heightmap</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regenerate_lightmap</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regenerate_metadata</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regenerate_skylight</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Chunk.damage"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.damage">[docs]</a>    <span class="k">def</span> <span class="nf">damage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record damage on this chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">176</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span> <span class="o">=</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Chunk.is_damaged"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.is_damaged">[docs]</a>    <span class="k">def</span> <span class="nf">is_damaged</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine whether any damage is pending on this chunk.</span>
+
+<span class="sd">        :returns: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Chunk.get_damage_packet"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.get_damage_packet">[docs]</a>    <span class="k">def</span> <span class="nf">get_damage_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a packet representing the current damage on this chunk.</span>
+
+<span class="sd">        This method is not private, but some care should be taken with it,</span>
+<span class="sd">        since it wraps some fairly cryptic internal data structures.</span>
+
+<span class="sd">        If this chunk is currently undamaged, this method will return an empty</span>
+<span class="sd">        string, which should be safe to treat as a packet. Please check with</span>
+<span class="sd">        `is_damaged()` before doing this if you need to optimize this case.</span>
+
+<span class="sd">        To avoid extra overhead, this method should really be used in</span>
+<span class="sd">        conjunction with `Factory.broadcast_for_chunk()`.</span>
+
+<span class="sd">        Do not forget to clear this chunk&#39;s damage! Callers are responsible</span>
+<span class="sd">        for doing this.</span>
+
+<span class="sd">        &gt;&gt;&gt; packet = chunk.get_damage_packet()</span>
+<span class="sd">        &gt;&gt;&gt; factory.broadcast_for_chunk(packet, chunk.x, chunk.z)</span>
+<span class="sd">        &gt;&gt;&gt; chunk.clear_damage()</span>
+
+<span class="sd">        :returns: str representing a packet</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span><span class="p">:</span>
+            <span class="c"># Resend the entire chunk!</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_to_packet</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s">&quot;&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c"># Use a single block update packet.</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">nonzero</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">return</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;block&quot;</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="mi">16</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+                    <span class="n">z</span><span class="o">=</span><span class="n">z</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="mi">16</span><span class="p">,</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span>
+                    <span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Use a batch update.</span>
+            <span class="n">damaged</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+            <span class="c"># Coordinates are not quite packed in the same system as the</span>
+            <span class="c"># indices for chunk data structures.</span>
+            <span class="c"># Chunk data structures are ((x * 16) + z) * 128) + y, or in</span>
+            <span class="c"># bit-twiddler&#39;s parlance, x &lt;&lt; 11 | z &lt;&lt; 7 | y. However, for</span>
+            <span class="c"># this, we need x &lt;&lt; 12 | z &lt;&lt; 8 | y, so repack accordingly.</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span> <span class="o">|</span> <span class="n">z</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span> <span class="o">|</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">damaged</span><span class="p">)]</span>
+            <span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">damaged</span><span class="p">]]</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">damaged</span><span class="p">]]</span>
+
+            <span class="k">return</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;batch&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="n">types</span><span class="p">,</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Chunk.clear_damage"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.clear_damage">[docs]</a>    <span class="k">def</span> <span class="nf">clear_damage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear this chunk&#39;s damage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">damaged</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span> <span class="o">=</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="Chunk.save_to_packet"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.save_to_packet">[docs]</a>    <span class="k">def</span> <span class="nf">save_to_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a chunk packet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="nb">chr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">ravel</span><span class="p">()]</span>
+        <span class="n">array</span> <span class="o">+=</span> <span class="n">pack_nibbles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">+=</span> <span class="n">pack_nibbles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lightmap</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">+=</span> <span class="n">pack_nibbles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skylight</span><span class="p">)</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;chunk&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="mi">16</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="mi">16</span><span class="p">,</span>
+            <span class="n">x_size</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">y_size</span><span class="o">=</span><span class="mi">127</span><span class="p">,</span> <span class="n">z_size</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">array</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">packet</span>
+</div>
+<div class="viewcode-block" id="Chunk.get_block"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.get_block">[docs]</a>    <span class="k">def</span> <span class="nf">get_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Look up a block value.</span>
+
+<span class="sd">        :param tuple coords: coordinate triplet</span>
+
+<span class="sd">        :returns: int representing block type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Chunk.set_block"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.set_block">[docs]</a>    <span class="k">def</span> <span class="nf">set_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update a block value.</span>
+
+<span class="sd">        :param tuple coords: coordinate triplet</span>
+<span class="sd">        :param int block: block type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">!=</span> <span class="n">block</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">block</span>
+
+            <span class="c"># Regenerate heightmap at this coordinate. Honestly not sure</span>
+            <span class="c"># whether or not this is cheaper than the set of conditional</span>
+            <span class="c"># statements required to update it in relative terms instead of</span>
+            <span class="c"># absolute terms. Revisit this later, maybe?</span>
+            <span class="c"># XXX definitely re-examine this later!</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">127</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]:</span>
+                    <span class="k">break</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">heightmap</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damage</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Chunk.get_metadata"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.get_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Look up metadata.</span>
+
+<span class="sd">        :param tuple coords: coordinate triplet</span>
+
+<span class="sd">        :returns: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Chunk.set_metadata"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.set_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">set_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update metadata.</span>
+
+<span class="sd">        :param tuple coords: coordinate triplet</span>
+<span class="sd">        :param int metadata:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">!=</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damage</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Chunk.height_at"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.height_at">[docs]</a>    <span class="k">def</span> <span class="nf">height_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the height of an xz-column of blocks.</span>
+
+<span class="sd">        :param int x: X coordinate</span>
+<span class="sd">        :param int z: Z coordinate</span>
+<span class="sd">        :returns: int representing height</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">heightmap</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Chunk.sed"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.sed">[docs]</a>    <span class="k">def</span> <span class="nf">sed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search</span><span class="p">,</span> <span class="n">replace</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute a search and replace on all blocks in this chunk.</span>
+
+<span class="sd">        Named after the ubiquitous Unix tool. Does a semantic</span>
+<span class="sd">        s/search/replace/g on this chunk&#39;s blocks.</span>
+
+<span class="sd">        :param int search: block to find</span>
+<span class="sd">        :param int replace: block to use as a replacement</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">==</span> <span class="n">search</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_damaged</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">==</span> <span class="n">search</span><span class="p">,</span> <span class="n">replace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Chunk.get_column"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.get_column">[docs]</a>    <span class="k">def</span> <span class="nf">get_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a slice of the block data at the given xz-column.</span>
+
+<span class="sd">        The slice is a numpy array, so you do not have to set it again if you</span>
+<span class="sd">        are modifying it in-place.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Chunk.set_column"><a class="viewcode-back" href="../../chunk.html#bravo.chunk.Chunk.set_column">[docs]</a>    <span class="k">def</span> <span class="nf">set_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Atomically set an entire xz-column&#39;s block data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">column</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">128</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damage</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+    </div>
+  </body>
+</html>
