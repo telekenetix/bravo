@@ -60,7 +60,7 @@ block data in chunks.</p>
 <span class="target" id="module-bravo.chunk"></span><dl class="class">
 <dt id="bravo.chunk.Chunk">
 <em class="property">class </em><tt class="descclassname">bravo.chunk.</tt><tt class="descname">Chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="reference internal" href="_modules/bravo/chunk.html#Chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.chunk.Chunk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">bravo.serializers.alpha.ChunkSerializer</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">bravo.serializers.json.ChunkSerializer</span></tt></p>
 <p>A chunk of blocks.</p>
 <p>Chunks are large pieces of world geometry. The blocks, light maps, and
 associated metadata are stored in chunks.</p>
@@ -322,6 +322,13 @@ s/search/replace/g on this chunk&#8217;s blocks.</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="bravo.chunk.composite_glow">
+<tt class="descclassname">bravo.chunk.</tt><tt class="descname">composite_glow</tt><big>(</big><em>target</em>, <em>strength</em>, <em>x</em>, <em>y</em>, <em>z</em><big>)</big><a class="headerlink" href="#bravo.chunk.composite_glow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Composite a light source onto a lightmap.</p>
+<p>The exact operation is not quite unlike an add.</p>
+</dd></dl>
+
 </div>
 
 
@@ -332,7 +339,7 @@ s/search/replace/g on this chunk&#8217;s blocks.</p>
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="blocks.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">blocks</span></tt> &#8211; Block descriptions</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">blocks</span></tt> &#8211; Block descriptions</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="entity.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">entity</span></tt> &#8211; Entities</a></p>

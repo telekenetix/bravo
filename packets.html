@@ -66,9 +66,11 @@ decoding data from packets.</p>
 
 <dl class="function">
 <dt id="bravo.packets.make_packet">
-<tt class="descclassname">bravo.packets.</tt><tt class="descname">make_packet</tt><big>(</big><em>packet</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/bravo/packets.html#make_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.packets.make_packet" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">bravo.packets.</tt><tt class="descname">make_packet</tt><big>(</big><em>packet</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/bravo/packets.html#make_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.packets.make_packet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a packet bytestream from a packet header and payload.</p>
-<p>The payload should be passed as keyword arguments.</p>
+<p>The payload should be passed as keyword arguments. Additional containers
+or dictionaries to be added to the payload may be passed positionally, as
+well.</p>
 </dd></dl>
 
 <dl class="function">

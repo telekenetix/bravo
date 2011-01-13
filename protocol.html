@@ -77,13 +77,23 @@ with no arguments</td>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="bravo.protocol.BetaProtocol.login">
+<tt class="descname">login</tt><big>(</big><em>container</em><big>)</big><a class="headerlink" href="#bravo.protocol.BetaProtocol.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle a login packet.</p>
+<p>This method wraps a login hook which is permitted to do just about
+anything, as long as it&#8217;s asynchronous. The hook returns a
+<tt class="docutils literal"><span class="pre">Deferred</span></tt>, which is chained to authenticate the user or disconnect
+them depending on the results of the authentication.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="bravo.protocol.BuildData">
 <em class="property">class </em><tt class="descclassname">bravo.protocol.</tt><tt class="descname">BuildData</tt><a class="headerlink" href="#bravo.protocol.BuildData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt></p>
-<p>BuildData(block, x, y, z, face)</p>
+<p>BuildData(block, metadata, x, y, z, face)</p>
 <dl class="attribute">
 <dt id="bravo.protocol.BuildData.block">
 <tt class="descname">block</tt><a class="headerlink" href="#bravo.protocol.BuildData.block" title="Permalink to this definition">¶</a></dt>
@@ -93,25 +103,31 @@ with no arguments</td>
 <dl class="attribute">
 <dt id="bravo.protocol.BuildData.face">
 <tt class="descname">face</tt><a class="headerlink" href="#bravo.protocol.BuildData.face" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 4</p>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="bravo.protocol.BuildData.metadata">
+<tt class="descname">metadata</tt><a class="headerlink" href="#bravo.protocol.BuildData.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="bravo.protocol.BuildData.x">
 <tt class="descname">x</tt><a class="headerlink" href="#bravo.protocol.BuildData.x" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
+<dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="bravo.protocol.BuildData.y">
 <tt class="descname">y</tt><a class="headerlink" href="#bravo.protocol.BuildData.y" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
+<dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="bravo.protocol.BuildData.z">
 <tt class="descname">z</tt><a class="headerlink" href="#bravo.protocol.BuildData.z" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
+<dd><p>Alias for field number 4</p>
 </dd></dl>
 
 </dd></dl>

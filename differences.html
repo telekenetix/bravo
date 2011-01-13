@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Core &mdash; Bravo v1.0 documentation</title>
+    <title>Differences &mdash; Bravo v1.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
-    <link rel="next" title="alpha – Alpha objects" href="alpha.html" />
-    <link rel="prev" title="Noise" href="noise.html" /> 
+    <link rel="next" title="Configuration" href="config.html" />
+    <link rel="prev" title="Plugins" href="plugins.html" /> 
   </head>
   <body>
     <div class="related">
@@ -37,10 +37,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="alpha.html" title="alpha – Alpha objects"
+          <a href="config.html" title="Configuration"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="noise.html" title="Noise"
+          <a href="plugins.html" title="Plugins"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
       </ul>
@@ -51,27 +51,24 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="core">
-<h1>Core<a class="headerlink" href="#core" title="Permalink to this headline">¶</a></h1>
-<p>These modules comprise the core functionality of Bravo.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="alpha.html"><tt class="docutils literal"><span class="pre">alpha</span></tt> &#8211; Alpha objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="blocks.html"><tt class="docutils literal"><span class="pre">blocks</span></tt> &#8211; Block descriptions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chunk.html"><tt class="docutils literal"><span class="pre">chunk</span></tt> &#8211; Chunk data structures</a></li>
-<li class="toctree-l1"><a class="reference internal" href="entity.html"><tt class="docutils literal"><span class="pre">entity</span></tt> &#8211; Entities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="factory.html"><tt class="docutils literal"><span class="pre">factory</span></tt> &#8211; Twisted factory</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ibravo.html"><tt class="docutils literal"><span class="pre">ibravo</span></tt> &#8211; Interfaces</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ibravo.html#plugins">Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibravo.html#hooks">Hooks</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="packets.html"><tt class="docutils literal"><span class="pre">packets</span></tt> &#8211; Packet serializers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="plugin.html"><tt class="docutils literal"><span class="pre">plugin</span></tt> &#8211; Plugin loaders</a></li>
-<li class="toctree-l1"><a class="reference internal" href="protocol.html"><tt class="docutils literal"><span class="pre">protocol</span></tt> &#8211; Twisted protocol</a></li>
-<li class="toctree-l1"><a class="reference internal" href="stdio.html"><tt class="docutils literal"><span class="pre">stdio</span></tt> &#8211; Console support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="world.html"><tt class="docutils literal"><span class="pre">world</span></tt> &#8211; Worlds</a></li>
-</ul>
+  <div class="section" id="differences">
+<h1>Differences<a class="headerlink" href="#differences" title="Permalink to this headline">¶</a></h1>
+<p>Bravo was written from the ground up and doesn&#8217;t inherit code from any other
+Minecraft project. This means that it sometimes behaves very differently, in
+subtle and obvious ways, from other servers.</p>
+<p>The &#8220;Notchian&#8221; server is the server authored by Notch and distributed by
+Mojang as a companion to the Mojang-sponsored client.</p>
+<div class="section" id="chunks">
+<h2>Chunks<a class="headerlink" href="#chunks" title="Permalink to this headline">¶</a></h2>
+<p>The Notchian server maintains a floating pattern above players, centered on
+the chunk the player is standing in. This pattern is always a square of
+chunks, 21 chunks to a side. This results in a total of 441 chunks being
+deployed to the client at any one time.</p>
+<p>Bravo does something slightly different; while Bravo also has a floating
+pattern above each of its players, the pattern is a circle with the same
+diameter as the Notchian server&#8217;s square. This effectively results in a circle
+of 315 chunks deployed to the client; a savings of nearly 30% in memory and
+bandwidth for chunks.</p>
 </div>
 </div>
 
@@ -81,15 +78,23 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Differences</a><ul>
+<li><a class="reference internal" href="#chunks">Chunks</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
-  <p class="topless"><a href="noise.html"
-                        title="previous chapter">Noise</a></p>
+  <p class="topless"><a href="plugins.html"
+                        title="previous chapter">Plugins</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="alpha.html"
-                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">alpha</span></tt> &#8211; Alpha objects</a></p>
+  <p class="topless"><a href="config.html"
+                        title="next chapter">Configuration</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/core.txt"
+    <li><a href="_sources/differences.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -119,10 +124,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="alpha.html" title="alpha – Alpha objects"
+          <a href="config.html" title="Configuration"
              >next</a> |</li>
         <li class="right" >
-          <a href="noise.html" title="Noise"
+          <a href="plugins.html" title="Plugins"
              >previous</a> |</li>
         <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
       </ul>
