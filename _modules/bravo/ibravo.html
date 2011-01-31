@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>bravo.ibravo &mdash; Bravo v1.0 documentation</title>
+    <title>bravo.ibravo &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -58,11 +58,17 @@
     <span class="k">def</span> <span class="nf">handshake</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle a handshake.</span>
+
+<span class="sd">        This function should always return True or False, depending on whether</span>
+<span class="sd">        the handshake was successful.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle a login.</span>
+
+<span class="sd">        This function should return a ``Deferred`` which will fire depending</span>
+<span class="sd">        on whether the login was successful.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
@@ -121,7 +127,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle a command from the chat interface.</span>
 
-<span class="sd">        :param `BetaFactory` factory: factory for this world</span>
+<span class="sd">        :param `BravoFactory` factory: factory for this world</span>
 <span class="sd">        :param str username: username of player</span>
 <span class="sd">        :param list parameters: additional parameters passed to the command</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -140,10 +146,39 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle a command.</span>
 
-<span class="sd">        :param `BetaFactory` factory: factory for this world</span>
+<span class="sd">        :param `BravoFactory` factory: factory for this world</span>
 <span class="sd">        :param list parameters: additional parameters passed to the command</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 </div>
+<span class="k">class</span> <span class="nc">IRecipe</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recipe for crafting materials from other materials.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Name of the recipe.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Tuple representing the size of the recipe.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">recipe</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Tuple representing the items of the recipe.</span>
+
+<span class="s">        Recipes need to be filled out left-to-right, top-to-bottom, with one</span>
+<span class="s">        of two things:</span>
+
+<span class="s">         * A tuple (slot, count) for the item/block that needs to be present;</span>
+<span class="s">         * None, if the slot needs to be empty.</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">provides</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        Tuple representing the yield of this recipe.</span>
+
+<span class="s">        This tuple must be of the format (slot, count).</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="ISeason"><a class="viewcode-back" href="../../ibravo.html#bravo.ibravo.ISeason">[docs]</a><span class="k">class</span> <span class="nc">ISeason</span><span class="p">(</span><span class="n">Interface</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Seasons are transformational stages run during certain days to emulate an</span>
@@ -168,9 +203,11 @@
 <span class="sd">    Hook for actions to be taken after a block is placed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">build_hook</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">builddata</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">build_hook</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">builddata</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Do things.</span>
+
+<span class="sd">        The ``player`` is a ``Player`` entity and can be modified as needed.</span>
 
 <span class="sd">        The ``builddata`` tuple has all of the useful things. It stores a</span>
 <span class="sd">        ``Block`` that will be placed, as well as the block coordinates and</span>
@@ -188,10 +225,11 @@
 
 <span class="sd">        A trivial do-nothing build hook looks like the following:</span>
 
-<span class="sd">        &gt;&gt;&gt; def build_hook(self, factory, builddata):</span>
+<span class="sd">        &gt;&gt;&gt; def build_hook(self, factory, player, builddata):</span>
 <span class="sd">        ...     return True, builddata</span>
 
-<span class="sd">        :param `Factory` factory: factory</span>
+<span class="sd">        :param ``Factory`` factory: factory</span>
+<span class="sd">        :param ``Player`` player: player entity doing the building</span>
 <span class="sd">        :param namedtuple builddata: permanent building location and data</span>
 
 <span class="sd">        :returns: tuple of build data and whether subsequent hooks will run</span>
@@ -254,13 +292,13 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>chunk – Chunk data structures &mdash; Bravo v1.0 documentation</title>
+    <title>chunk – Chunk data structures &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="index.html" />
     <link rel="up" title="Core" href="core.html" />
     <link rel="next" title="entity – Entities" href="entity.html" />
     <link rel="prev" title="blocks – Block descriptions" href="blocks.html" /> 
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="blocks.html" title="blocks – Block descriptions"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
       </ul>
     </div>  
@@ -60,7 +60,7 @@ block data in chunks.</p>
 <span class="target" id="module-bravo.chunk"></span><dl class="class">
 <dt id="bravo.chunk.Chunk">
 <em class="property">class </em><tt class="descclassname">bravo.chunk.</tt><tt class="descname">Chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="reference internal" href="_modules/bravo/chunk.html#Chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.chunk.Chunk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">bravo.serializers.json.ChunkSerializer</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">bravo.serializers.alpha.ChunkSerializer</span></tt></p>
 <p>A chunk of blocks.</p>
 <p>Chunks are large pieces of world geometry. The blocks, light maps, and
 associated metadata are stored in chunks.</p>
@@ -105,13 +105,9 @@ damage represented as a complete resend of the entire chunk.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>coords</strong> (<em>tuple</em>) &#8211; coordinate triplet</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> (<em>tuple</em>) &#8211; coordinate triplet</td>
 </tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">int representing block type</p>
-</td>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">int representing block type</td>
 </tr>
 </tbody>
 </table>
@@ -161,13 +157,9 @@ for doing this.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>coords</strong> (<em>tuple</em>) &#8211; coordinate triplet</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> (<em>tuple</em>) &#8211; coordinate triplet</td>
 </tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">int</p>
-</td>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">int</td>
 </tr>
 </tbody>
 </table>
@@ -324,7 +316,7 @@ s/search/replace/g on this chunk&#8217;s blocks.</p>
 
 <dl class="function">
 <dt id="bravo.chunk.composite_glow">
-<tt class="descclassname">bravo.chunk.</tt><tt class="descname">composite_glow</tt><big>(</big><em>target</em>, <em>strength</em>, <em>x</em>, <em>y</em>, <em>z</em><big>)</big><a class="headerlink" href="#bravo.chunk.composite_glow" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">bravo.chunk.</tt><tt class="descname">composite_glow</tt><big>(</big><em>target</em>, <em>strength</em>, <em>x</em>, <em>y</em>, <em>z</em><big>)</big><a class="reference internal" href="_modules/bravo/chunk.html#composite_glow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.chunk.composite_glow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Composite a light source onto a lightmap.</p>
 <p>The exact operation is not quite unlike an add.</p>
 </dd></dl>
@@ -380,13 +372,13 @@ s/search/replace/g on this chunk&#8217;s blocks.</p>
         <li class="right" >
           <a href="blocks.html" title="blocks – Block descriptions"
              >previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="core.html" >Core</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

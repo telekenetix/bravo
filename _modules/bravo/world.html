@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>bravo.world &mdash; Bravo v1.0 documentation</title>
+    <title>bravo.world &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -50,13 +50,27 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
 
-<span class="kn">from</span> <span class="nn">twisted.internet.task</span> <span class="kn">import</span> <span class="n">LoopingCall</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">fromstring</span><span class="p">,</span> <span class="n">uint8</span>
+
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">Deferred</span><span class="p">,</span> <span class="n">succeed</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.task</span> <span class="kn">import</span> <span class="n">coiterate</span><span class="p">,</span> <span class="n">deferLater</span><span class="p">,</span> <span class="n">LoopingCall</span>
+<span class="kn">from</span> <span class="nn">twisted.python</span> <span class="kn">import</span> <span class="n">log</span>
 <span class="kn">from</span> <span class="nn">twisted.python.filepath</span> <span class="kn">import</span> <span class="n">FilePath</span>
 
-<span class="kn">from</span> <span class="nn">nbt.nbt</span> <span class="kn">import</span> <span class="n">NBTFile</span>
-
 <span class="kn">from</span> <span class="nn">bravo.chunk</span> <span class="kn">import</span> <span class="n">Chunk</span>
+<span class="kn">from</span> <span class="nn">bravo.compat</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">bravo.config</span> <span class="kn">import</span> <span class="n">configuration</span>
 <span class="kn">from</span> <span class="nn">bravo.serialize</span> <span class="kn">import</span> <span class="n">LevelSerializer</span>
+<span class="kn">from</span> <span class="nn">bravo.serialize</span> <span class="kn">import</span> <span class="n">read_from_file</span><span class="p">,</span> <span class="n">write_to_file</span><span class="p">,</span> <span class="n">extension</span>
+<span class="kn">from</span> <span class="nn">bravo.utilities</span> <span class="kn">import</span> <span class="n">split_coords</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ampoule</span> <span class="kn">import</span> <span class="n">deferToAMPProcess</span>
+    <span class="kn">from</span> <span class="nn">bravo.remote</span> <span class="kn">import</span> <span class="n">MakeChunk</span>
+    <span class="n">async</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s">&quot;bravo&quot;</span><span class="p">,</span> <span class="s">&quot;ampoule&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">async</span> <span class="o">=</span> <span class="bp">False</span>
 
 <div class="viewcode-block" id="base36"><a class="viewcode-back" href="../../world.html#bravo.world.base36">[docs]</a><span class="k">def</span> <span class="nf">base36</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -83,6 +97,17 @@
         <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;-&quot;</span> <span class="o">+</span> <span class="n">s</span>
 
     <span class="k">return</span> <span class="n">s</span>
+</div>
+<div class="viewcode-block" id="names_for_chunk"><a class="viewcode-back" href="../../world.html#bravo.world.names_for_chunk">[docs]</a><span class="k">def</span> <span class="nf">names_for_chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the folder and file names for given chunk coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">first</span> <span class="o">=</span> <span class="n">base36</span><span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">)</span>
+    <span class="n">second</span> <span class="o">=</span> <span class="n">base36</span><span class="p">(</span><span class="n">z</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">)</span>
+    <span class="n">third</span> <span class="o">=</span> <span class="s">&quot;c.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">base36</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">extension</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">third</span>
 </div>
 <div class="viewcode-block" id="World"><a class="viewcode-back" href="../../world.html#bravo.world.World">[docs]</a><span class="k">class</span> <span class="nc">World</span><span class="p">(</span><span class="n">LevelSerializer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -118,19 +143,34 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakValueDictionary</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_chunks</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="p">)</span>
 
-        <span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;level.dat&quot;</span><span class="p">)</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;level</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">extension</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">level</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">level</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">NBTFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">level</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">read_from_file</span><span class="p">(</span><span class="n">level</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
 
-        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">()</span>
-        <span class="n">tag</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">level</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
+        <span class="n">write_to_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">(),</span> <span class="n">level</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">chunk_management_loop</span> <span class="o">=</span> <span class="n">LoopingCall</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_chunks</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chunk_management_loop</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
+<div class="viewcode-block" id="World.enable_cache"><a class="viewcode-back" href="../../world.html#bravo.world.World.enable_cache">[docs]</a>    <span class="k">def</span> <span class="nf">enable_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Start up a rudimentary permanent cache.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">permanent_cache</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="n">chunk</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">permanent_cache</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+        <span class="n">rx</span> <span class="o">=</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">rz</span> <span class="o">=</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">coiterate</span><span class="p">(</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">load_chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">rx</span><span class="p">,</span> <span class="n">rz</span><span class="p">))</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">chaff</span><span class="p">:</span> <span class="n">log</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;Cache is warmed up!&quot;</span><span class="p">))</span>
+</div>
 <div class="viewcode-block" id="World.sort_chunks"><a class="viewcode-back" href="../../world.html#bravo.world.World.sort_chunks">[docs]</a>    <span class="k">def</span> <span class="nf">sort_chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sort out the internal caches.</span>
@@ -200,9 +240,88 @@
 
         <span class="n">chunk</span><span class="o">.</span><span class="n">regenerate</span><span class="p">()</span>
 </div>
+<div class="viewcode-block" id="World.request_chunk"><a class="viewcode-back" href="../../world.html#bravo.world.World.request_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">request_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request a ``Chunk`` to be delivered later.</span>
+
+<span class="sd">        :returns: Deferred that will be called with the Chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">async</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">deferLater</span><span class="p">(</span><span class="n">reactor</span><span class="p">,</span> <span class="mf">0.000001</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">world</span><span class="o">.</span><span class="n">load_chunk</span><span class="p">,</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">succeed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">succeed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_chunks</span><span class="p">:</span>
+            <span class="c"># Rig up another Deferred and wrap it up in a to-go box.</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">Deferred</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_chunks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span><span class="o">.</span><span class="n">chainDeferred</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">d</span>
+
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">Chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+        <span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">names_for_chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">first</span><span class="p">)</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">second</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">read_from_file</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">populated</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+            <span class="k">return</span> <span class="n">succeed</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">deferToAMPProcess</span><span class="p">(</span><span class="n">MakeChunk</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">generators</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s">&quot;bravo&quot;</span><span class="p">,</span> <span class="s">&quot;generators&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_chunks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+
+        <span class="k">def</span> <span class="nf">pp</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;blocks&quot;</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">heightmap</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;heightmap&quot;</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">heightmap</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;metadata&quot;</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">skylight</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;skylight&quot;</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">skylight</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">blocklight</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;blocklight&quot;</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">blocklight</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+            <span class="n">chunk</span><span class="o">.</span><span class="n">populated</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">True</span>
+
+            <span class="c"># Apply the current season to the chunk.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">season</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">season</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+            <span class="c"># Since this chunk hasn&#39;t been given to any player yet, there&#39;s no</span>
+            <span class="c"># conceivable way that any meaningful damage has been accumulated;</span>
+            <span class="c"># anybody loading any part of this chunk will want the entire thing.</span>
+            <span class="c"># Thus, it should start out undamaged.</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">clear_damage</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dirty_chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_chunks</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+
+            <span class="k">return</span> <span class="n">chunk</span>
+
+        <span class="c"># Set up callbacks.</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">pp</span><span class="p">)</span>
+        <span class="c"># Multiple people might be subscribed to this pending callback. We&#39;re</span>
+        <span class="c"># going to keep it for ourselves and fork off another Deferred for our</span>
+        <span class="c"># caller.</span>
+        <span class="n">forked</span> <span class="o">=</span> <span class="n">Deferred</span><span class="p">()</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">chainDeferred</span><span class="p">(</span><span class="n">forked</span><span class="p">)</span>
+        <span class="n">forked</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">none</span><span class="p">:</span> <span class="n">chunk</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">forked</span>
+</div>
 <div class="viewcode-block" id="World.load_chunk"><a class="viewcode-back" href="../../world.html#bravo.world.World.load_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">load_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve a `Chunk`.</span>
+<span class="sd">        Retrieve a ``Chunk`` synchronously.</span>
 
 <span class="sd">        This method does lots of automatic caching of chunks to ensure that</span>
 <span class="sd">        disk I/O is kept to a minimum.</span>
@@ -215,13 +334,13 @@
 
         <span class="n">chunk</span> <span class="o">=</span> <span class="n">Chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
 
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">z</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">names_for_chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">first</span><span class="p">)</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">second</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;c.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">base36</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
-            <span class="n">tag</span> <span class="o">=</span> <span class="n">NBTFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">))</span>
-            <span class="n">chunk</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">read_from_file</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
 
         <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">populated</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">chunk_cache</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk</span>
@@ -249,13 +368,12 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">z</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">z</span> <span class="o">&amp;</span> <span class="mi">63</span><span class="p">))</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">names_for_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">first</span><span class="p">)</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">second</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;c.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base36</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">base36</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
-        <span class="n">tag</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">()</span>
-        <span class="n">tag</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">write_to_file</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">(),</span> <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
 
         <span class="n">chunk</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="bp">False</span>
 
@@ -265,7 +383,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">player</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">create_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s">&quot;Player&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s">&quot;Player&quot;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">)</span>
 
         <span class="n">player</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">stance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">player</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
@@ -273,10 +391,9 @@
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;players&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">extension</span><span class="p">()))</span>
         <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getsize</span><span class="p">():</span>
-            <span class="n">tag</span> <span class="o">=</span> <span class="n">NBTFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">))</span>
-            <span class="n">player</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">player</span><span class="o">.</span><span class="n">load_from_tag</span><span class="p">(</span><span class="n">read_from_file</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
 
         <span class="k">return</span> <span class="n">player</span>
 </div>
@@ -285,9 +402,52 @@
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;players&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">f</span><span class="o">.</span><span class="n">makedirs</span><span class="p">()</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">.dat&quot;</span> <span class="o">%</span> <span class="n">username</span><span class="p">)</span>
-        <span class="n">tag</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">()</span>
-        <span class="n">tag</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span></div>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">child</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">extension</span><span class="p">()))</span>
+        <span class="n">write_to_file</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">save_to_tag</span><span class="p">(),</span> <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="World.get_block"><a class="viewcode-back" href="../../world.html#bravo.world.World.get_block">[docs]</a>    <span class="k">def</span> <span class="nf">get_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a block from an unknown chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="n">bigx</span><span class="p">,</span> <span class="n">smallx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">,</span> <span class="n">smallz</span> <span class="o">=</span> <span class="n">split_coords</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_chunk</span><span class="p">(</span><span class="n">bigx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get_block</span><span class="p">((</span><span class="n">smallx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">smallz</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="World.set_block"><a class="viewcode-back" href="../../world.html#bravo.world.World.set_block">[docs]</a>    <span class="k">def</span> <span class="nf">set_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a block in an unknown chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="n">bigx</span><span class="p">,</span> <span class="n">smallx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">,</span> <span class="n">smallz</span> <span class="o">=</span> <span class="n">split_coords</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_chunk</span><span class="p">(</span><span class="n">bigx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">)</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">set_block</span><span class="p">((</span><span class="n">smallx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">smallz</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="World.get_metadata"><a class="viewcode-back" href="../../world.html#bravo.world.World.get_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a block&#39;s metadata from an unknown chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="n">bigx</span><span class="p">,</span> <span class="n">smallx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">,</span> <span class="n">smallz</span> <span class="o">=</span> <span class="n">split_coords</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_chunk</span><span class="p">(</span><span class="n">bigx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">((</span><span class="n">smallx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">smallz</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="World.set_metadata"><a class="viewcode-back" href="../../world.html#bravo.world.World.set_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">set_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a block&#39;s metadata in an unknown chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span>
+
+        <span class="n">bigx</span><span class="p">,</span> <span class="n">smallx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">,</span> <span class="n">smallz</span> <span class="o">=</span> <span class="n">split_coords</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_chunk</span><span class="p">(</span><span class="n">bigx</span><span class="p">,</span> <span class="n">bigz</span><span class="p">)</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">set_metadata</span><span class="p">((</span><span class="n">smallx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">smallz</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>
@@ -321,13 +481,13 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

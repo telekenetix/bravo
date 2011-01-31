@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Differences &mdash; Bravo v1.0 documentation</title>
+    <title>Differences &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="index.html" />
     <link rel="next" title="Configuration" href="config.html" />
     <link rel="prev" title="Plugins" href="plugins.html" /> 
   </head>
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="plugins.html" title="Plugins"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -63,12 +63,28 @@ Mojang as a companion to the Mojang-sponsored client.</p>
 <p>The Notchian server maintains a floating pattern above players, centered on
 the chunk the player is standing in. This pattern is always a square of
 chunks, 21 chunks to a side. This results in a total of 441 chunks being
-deployed to the client at any one time.</p>
+deployed to the client at any one time. All 441 chunks are deployed before the
+client is permitted to interact with the world.</p>
 <p>Bravo does something slightly different; while Bravo also has a floating
 pattern above each of its players, the pattern is a circle with the same
 diameter as the Notchian server&#8217;s square. This effectively results in a circle
 of 315 chunks deployed to the client; a savings of nearly 30% in memory and
-bandwidth for chunks.</p>
+bandwidth for chunks. Additionally, only the 50 closest chunks are deployed
+before the client is spawned and permitted to interact with the world.</p>
+</div>
+<div class="section" id="inventory">
+<h2>Inventory<a class="headerlink" href="#inventory" title="Permalink to this headline">¶</a></h2>
+<p>The Notchian viewpoint of items in the inventory is as a list of slots. Each
+slot holds an item, identified by a single number, and can hold 1 to 64
+instances of that item. Some items can be damaged. Some items are completely
+different depending on their damage.</p>
+<p>Bravo views item identifiers as a composite key of a primary and secondary
+identifier. In this scheme, items with identical primary keys and different
+secondary keys are properly segregated, and item damage is stored as the
+secondary key, keeping items with differing amounts of damage from occupying
+the same slot. This avoids an entire class of bugs, where items can be
+stacked and unstacked to change the amount of damage on them, which have
+historically plagued the Notchian codebase.</p>
 </div>
 </div>
 
@@ -82,6 +98,7 @@ bandwidth for chunks.</p>
   <ul>
 <li><a class="reference internal" href="#">Differences</a><ul>
 <li><a class="reference internal" href="#chunks">Chunks</a></li>
+<li><a class="reference internal" href="#inventory">Inventory</a></li>
 </ul>
 </li>
 </ul>
@@ -129,12 +146,12 @@ bandwidth for chunks.</p>
         <li class="right" >
           <a href="plugins.html" title="Plugins"
              >previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

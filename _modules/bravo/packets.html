@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>bravo.packets &mdash; Bravo v1.0 documentation</title>
+    <title>bravo.packets &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="../../index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -48,9 +48,9 @@
   <h1>Source code for bravo.packets</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">functools</span>
 
-<span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">Struct</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">Embed</span>
-<span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">MetaArray</span><span class="p">,</span> <span class="n">If</span><span class="p">,</span> <span class="n">Switch</span>
-<span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">OptionalGreedyRepeater</span>
+<span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">Struct</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">Embed</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">MetaField</span>
+<span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">MetaArray</span><span class="p">,</span> <span class="n">If</span><span class="p">,</span> <span class="n">Switch</span><span class="p">,</span> <span class="n">Const</span><span class="p">,</span> <span class="n">Peek</span>
+<span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">OptionalGreedyRange</span>
 <span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">PascalString</span>
 <span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">UBInt8</span><span class="p">,</span> <span class="n">UBInt16</span><span class="p">,</span> <span class="n">UBInt32</span><span class="p">,</span> <span class="n">UBInt64</span>
 <span class="kn">from</span> <span class="nn">construct</span> <span class="kn">import</span> <span class="n">SBInt8</span><span class="p">,</span> <span class="n">SBInt16</span><span class="p">,</span> <span class="n">SBInt32</span>
@@ -66,6 +66,7 @@
     <span class="n">length_field</span><span class="o">=</span><span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;length&quot;</span><span class="p">),</span>
     <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf8&quot;</span><span class="p">)</span>
 
+<span class="c"># Flying, position, and orientation, reused in several places.</span>
 <span class="n">flying</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;flying&quot;</span><span class="p">,</span> <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;flying&quot;</span><span class="p">))</span>
 <span class="n">position</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;position&quot;</span><span class="p">,</span>
     <span class="n">BFloat64</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
@@ -75,15 +76,28 @@
 <span class="p">)</span>
 <span class="n">look</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;look&quot;</span><span class="p">,</span> <span class="n">BFloat32</span><span class="p">(</span><span class="s">&quot;rotation&quot;</span><span class="p">),</span> <span class="n">BFloat32</span><span class="p">(</span><span class="s">&quot;pitch&quot;</span><span class="p">))</span>
 
+<span class="c"># Notchian item packing</span>
 <span class="n">items</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;items&quot;</span><span class="p">,</span>
-    <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
-    <span class="n">If</span><span class="p">(</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;primary&quot;</span><span class="p">),</span>
+    <span class="n">If</span><span class="p">(</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;primary&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">Embed</span><span class="p">(</span><span class="n">Struct</span><span class="p">(</span><span class="s">&quot;item_information&quot;</span><span class="p">,</span>
             <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">),</span>
-            <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;damage&quot;</span><span class="p">),</span>
+            <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;secondary&quot;</span><span class="p">),</span>
         <span class="p">)),</span>
     <span class="p">),</span>
 <span class="p">)</span>
+
+<span class="c"># Build faces, used during dig and build.</span>
+<span class="n">faces</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;noop&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="s">&quot;-y&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s">&quot;+y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s">&quot;-z&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s">&quot;+z&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s">&quot;-x&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s">&quot;+x&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">face</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;face&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">faces</span><span class="p">)</span>
 
 <span class="n">packets</span> <span class="o">=</span> <span class="p">{</span>
     <span class="mi">0</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;ping&quot;</span><span class="p">),</span>
@@ -91,8 +105,8 @@
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;protocol&quot;</span><span class="p">),</span>
         <span class="n">AlphaString</span><span class="p">(</span><span class="s">&quot;username&quot;</span><span class="p">),</span>
         <span class="n">AlphaString</span><span class="p">(</span><span class="s">&quot;unused&quot;</span><span class="p">),</span>
-        <span class="n">UBInt64</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
-        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;unknown2&quot;</span><span class="p">),</span>
+        <span class="n">UBInt64</span><span class="p">(</span><span class="s">&quot;seed&quot;</span><span class="p">),</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;dimension&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">2</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;handshake&quot;</span><span class="p">,</span>
         <span class="n">AlphaString</span><span class="p">(</span><span class="s">&quot;username&quot;</span><span class="p">),</span>
@@ -106,16 +120,18 @@
     <span class="mi">5</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;entity-equipment&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
         <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;slot&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
+        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;primary&quot;</span><span class="p">),</span>
+        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;secondary&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">6</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;spawn&quot;</span><span class="p">,</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="mi">7</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;unknown&quot;</span><span class="p">,</span>
-        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
-        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;unknown2&quot;</span><span class="p">),</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;use&quot;</span><span class="p">,</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">),</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;button&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">8</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;health&quot;</span><span class="p">,</span>
         <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;hp&quot;</span><span class="p">),</span>
@@ -130,21 +146,35 @@
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
-        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;face&quot;</span><span class="p">),</span>
+        <span class="n">face</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="mi">15</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;build&quot;</span><span class="p">,</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
         <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
-        <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;face&quot;</span><span class="p">),</span>
+        <span class="n">face</span><span class="p">,</span>
         <span class="n">Embed</span><span class="p">(</span><span class="n">items</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">16</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;equip&quot;</span><span class="p">,</span>
         <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;item&quot;</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="mi">18</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;arm&quot;</span><span class="p">,</span>
+    <span class="mi">18</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;animate&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
-        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;animate&quot;</span><span class="p">),</span>
+        <span class="n">Enum</span><span class="p">(</span><span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;animation&quot;</span><span class="p">),</span>
+            <span class="n">noop</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">arm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">hit</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">unknown</span><span class="o">=</span><span class="mi">102</span><span class="p">,</span>
+            <span class="n">crouch</span><span class="o">=</span><span class="mi">104</span><span class="p">,</span>
+            <span class="n">uncrouch</span><span class="o">=</span><span class="mi">105</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="mi">19</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;action&quot;</span><span class="p">,</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
+        <span class="n">Enum</span><span class="p">(</span><span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;action&quot;</span><span class="p">),</span>
+            <span class="n">crouch</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">uncrouch</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">20</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;player&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
@@ -154,12 +184,13 @@
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;yaw&quot;</span><span class="p">),</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;pitch&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;item&quot;</span><span class="p">),</span>
+        <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;item&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">21</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;pickup&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;item&quot;</span><span class="p">),</span>
+        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;primary&quot;</span><span class="p">),</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">),</span>
+        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;secondary&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
@@ -187,11 +218,19 @@
         <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;yaw&quot;</span><span class="p">),</span>
         <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;pitch&quot;</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="mi">28</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;unknown&quot;</span><span class="p">,</span>
+    <span class="mi">25</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;painting&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;unknown2&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;unknown3&quot;</span><span class="p">),</span>
+        <span class="n">AlphaString</span><span class="p">(</span><span class="s">&quot;title&quot;</span><span class="p">),</span>
+        <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
+        <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
+        <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="mi">28</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;velocity&quot;</span><span class="p">,</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
+        <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;dx&quot;</span><span class="p">),</span>
+        <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;dy&quot;</span><span class="p">),</span>
+        <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;dz&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">29</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;destroy&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
@@ -226,9 +265,13 @@
         <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;yaw&quot;</span><span class="p">),</span>
         <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;pitch&quot;</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="mi">39</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;unknown&quot;</span><span class="p">,</span>
+    <span class="mi">38</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;status&quot;</span><span class="p">,</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
-        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="mi">39</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;attach&quot;</span><span class="p">,</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;eid&quot;</span><span class="p">),</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;vid&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">50</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;prechunk&quot;</span><span class="p">,</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
@@ -259,19 +302,36 @@
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">),</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;meta&quot;</span><span class="p">),</span>
     <span class="p">),</span>
+    <span class="mi">54</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;note&quot;</span><span class="p">,</span>
+        <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
+        <span class="n">SBInt8</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
+        <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
+        <span class="n">Enum</span><span class="p">(</span><span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;instrument&quot;</span><span class="p">),</span>
+            <span class="n">bass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">snare</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">click</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">bass_drum</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">harp</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;pitch&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
     <span class="mi">60</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;explosion&quot;</span><span class="p">,</span>
         <span class="n">BFloat64</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
         <span class="n">BFloat64</span><span class="p">(</span><span class="s">&quot;unknown2&quot;</span><span class="p">),</span>
         <span class="n">BFloat64</span><span class="p">(</span><span class="s">&quot;unknown3&quot;</span><span class="p">),</span>
         <span class="n">BFloat32</span><span class="p">(</span><span class="s">&quot;unknown4&quot;</span><span class="p">),</span>
         <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">),</span>
-        <span class="n">MetaArray</span><span class="p">(</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;length&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;unknown5&quot;</span><span class="p">)),</span>
+        <span class="n">MetaField</span><span class="p">(</span><span class="s">&quot;unknown5&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;count&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">100</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;window-open&quot;</span><span class="p">,</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;wid&quot;</span><span class="p">),</span>
-        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
+        <span class="n">Enum</span><span class="p">(</span><span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">),</span>
+            <span class="n">inventory</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">workbench</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">furnace</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="n">AlphaString</span><span class="p">(</span><span class="s">&quot;title&quot;</span><span class="p">),</span>
-        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">),</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;slots&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">101</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;window-close&quot;</span><span class="p">,</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;wid&quot;</span><span class="p">),</span>
@@ -291,29 +351,19 @@
     <span class="mi">104</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;inventory&quot;</span><span class="p">,</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">),</span>
         <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;length&quot;</span><span class="p">),</span>
-        <span class="n">MetaArray</span><span class="p">(</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;length&quot;</span><span class="p">],</span>
-            <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;items&quot;</span><span class="p">,</span>
-                <span class="n">SBInt16</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
-                <span class="n">If</span><span class="p">(</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="n">Embed</span><span class="p">(</span><span class="n">Struct</span><span class="p">(</span><span class="s">&quot;item_information&quot;</span><span class="p">,</span>
-                        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">),</span>
-                        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;damage&quot;</span><span class="p">),</span>
-                    <span class="p">)),</span>
-                <span class="p">),</span>
-            <span class="p">),</span>
-        <span class="p">),</span>
+        <span class="n">MetaArray</span><span class="p">(</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;length&quot;</span><span class="p">],</span> <span class="n">items</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="mi">105</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;unknown&quot;</span><span class="p">,</span>
-        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;unknown1&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;unknown2&quot;</span><span class="p">),</span>
-        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;unknown3&quot;</span><span class="p">),</span>
+    <span class="mi">105</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;window-progress&quot;</span><span class="p">,</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;wid&quot;</span><span class="p">),</span>
+        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;bar&quot;</span><span class="p">),</span>
+        <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;progress&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="mi">106</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;window-token&quot;</span><span class="p">,</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;wid&quot;</span><span class="p">),</span>
         <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;token&quot;</span><span class="p">),</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;acknowledged&quot;</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="mi">103</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;sign&quot;</span><span class="p">,</span>
+    <span class="mi">130</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;sign&quot;</span><span class="p">,</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span>
         <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span>
         <span class="n">SBInt32</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">),</span>
@@ -328,13 +378,13 @@
 <span class="p">}</span>
 
 <span class="n">packet_stream</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;packet_stream&quot;</span><span class="p">,</span>
-    <span class="n">OptionalGreedyRepeater</span><span class="p">(</span>
+    <span class="n">OptionalGreedyRange</span><span class="p">(</span>
         <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;full_packet&quot;</span><span class="p">,</span>
             <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">),</span>
             <span class="n">Switch</span><span class="p">(</span><span class="s">&quot;payload&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;header&quot;</span><span class="p">],</span> <span class="n">packets</span><span class="p">),</span>
         <span class="p">),</span>
     <span class="p">),</span>
-    <span class="n">OptionalGreedyRepeater</span><span class="p">(</span>
+    <span class="n">OptionalGreedyRange</span><span class="p">(</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;leftovers&quot;</span><span class="p">),</span>
     <span class="p">),</span>
 <span class="p">)</span>
@@ -365,7 +415,7 @@
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">),</span>
         <span class="n">Switch</span><span class="p">(</span><span class="s">&quot;payload&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;header&quot;</span><span class="p">],</span> <span class="n">packets</span><span class="p">),</span>
     <span class="p">),</span>
-    <span class="n">OptionalGreedyRepeater</span><span class="p">(</span>
+    <span class="n">OptionalGreedyRange</span><span class="p">(</span>
         <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;leftovers&quot;</span><span class="p">),</span>
     <span class="p">),</span>
 <span class="p">)</span>
@@ -399,6 +449,7 @@
     <span class="s">&quot;time&quot;</span>               <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
     <span class="s">&quot;entity-equipment&quot;</span>   <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
     <span class="s">&quot;spawn&quot;</span>              <span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s">&quot;use&quot;</span>                <span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
     <span class="s">&quot;health&quot;</span>             <span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
     <span class="s">&quot;respawn&quot;</span>            <span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
     <span class="s">&quot;flying&quot;</span>             <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
@@ -408,31 +459,47 @@
     <span class="s">&quot;digging&quot;</span>            <span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
     <span class="s">&quot;build&quot;</span>              <span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
     <span class="s">&quot;equip&quot;</span>              <span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s">&quot;arm&quot;</span>                <span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
+    <span class="s">&quot;animate&quot;</span>            <span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
+    <span class="s">&quot;action&quot;</span>             <span class="p">:</span> <span class="mi">19</span><span class="p">,</span>
     <span class="s">&quot;player&quot;</span>             <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
     <span class="s">&quot;pickup&quot;</span>             <span class="p">:</span> <span class="mi">21</span><span class="p">,</span>
     <span class="s">&quot;collect&quot;</span>            <span class="p">:</span> <span class="mi">22</span><span class="p">,</span>
     <span class="s">&quot;vehicle&quot;</span>            <span class="p">:</span> <span class="mi">23</span><span class="p">,</span>
+    <span class="s">&quot;mob&quot;</span>                <span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="s">&quot;painting&quot;</span>           <span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+    <span class="s">&quot;velocity&quot;</span>           <span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
     <span class="s">&quot;destroy&quot;</span>            <span class="p">:</span> <span class="mi">29</span><span class="p">,</span>
     <span class="s">&quot;create&quot;</span>             <span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
     <span class="s">&quot;entity-position&quot;</span>    <span class="p">:</span> <span class="mi">31</span><span class="p">,</span>
     <span class="s">&quot;entity-orientation&quot;</span> <span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
     <span class="s">&quot;entity-location&quot;</span>    <span class="p">:</span> <span class="mi">33</span><span class="p">,</span>
     <span class="s">&quot;teleport&quot;</span>           <span class="p">:</span> <span class="mi">34</span><span class="p">,</span>
+    <span class="s">&quot;status&quot;</span>             <span class="p">:</span> <span class="mi">38</span><span class="p">,</span>
+    <span class="s">&quot;attach&quot;</span>             <span class="p">:</span> <span class="mi">39</span><span class="p">,</span>
     <span class="s">&quot;prechunk&quot;</span>           <span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
     <span class="s">&quot;chunk&quot;</span>              <span class="p">:</span> <span class="mi">51</span><span class="p">,</span>
     <span class="s">&quot;batch&quot;</span>              <span class="p">:</span> <span class="mi">52</span><span class="p">,</span>
     <span class="s">&quot;block&quot;</span>              <span class="p">:</span> <span class="mi">53</span><span class="p">,</span>
+    <span class="s">&quot;note&quot;</span>               <span class="p">:</span> <span class="mi">54</span><span class="p">,</span>
     <span class="s">&quot;explosion&quot;</span>          <span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
+    <span class="s">&quot;window-open&quot;</span>        <span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s">&quot;window-close&quot;</span>       <span class="p">:</span> <span class="mi">101</span><span class="p">,</span>
+    <span class="s">&quot;window-action&quot;</span>      <span class="p">:</span> <span class="mi">102</span><span class="p">,</span>
+    <span class="s">&quot;window-slot&quot;</span>        <span class="p">:</span> <span class="mi">103</span><span class="p">,</span>
     <span class="s">&quot;inventory&quot;</span>          <span class="p">:</span> <span class="mi">104</span><span class="p">,</span>
+    <span class="s">&quot;window-progress&quot;</span>    <span class="p">:</span> <span class="mi">105</span><span class="p">,</span>
+    <span class="s">&quot;window-token&quot;</span>       <span class="p">:</span> <span class="mi">106</span><span class="p">,</span>
+    <span class="s">&quot;sign&quot;</span>               <span class="p">:</span> <span class="mi">130</span><span class="p">,</span>
     <span class="s">&quot;error&quot;</span>              <span class="p">:</span> <span class="mi">255</span><span class="p">,</span>
 <span class="p">}</span>
 
-<div class="viewcode-block" id="make_packet"><a class="viewcode-back" href="../../packets.html#bravo.packets.make_packet">[docs]</a><span class="k">def</span> <span class="nf">make_packet</span><span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="make_packet"><a class="viewcode-back" href="../../packets.html#bravo.packets.make_packet">[docs]</a><span class="k">def</span> <span class="nf">make_packet</span><span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a packet bytestream from a packet header and payload.</span>
 
-<span class="sd">    The payload should be passed as keyword arguments.</span>
+<span class="sd">    The payload should be passed as keyword arguments. Additional containers</span>
+<span class="sd">    or dictionaries to be added to the payload may be passed positionally, as</span>
+<span class="sd">    well.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">packet</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">packets_by_name</span><span class="p">:</span>
@@ -440,7 +507,11 @@
         <span class="k">return</span> <span class="s">&quot;&quot;</span>
 
     <span class="n">header</span> <span class="o">=</span> <span class="n">packets_by_name</span><span class="p">[</span><span class="n">packet</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
     <span class="n">container</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">DUMP_ALL_PACKETS</span><span class="p">:</span>
         <span class="k">print</span> <span class="s">&quot;Making packet </span><span class="si">%s</span><span class="s"> (</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
         <span class="k">print</span> <span class="n">container</span>
@@ -452,7 +523,110 @@
 <span class="sd">    Convenience method to generate an error packet bytestream.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;error&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">make_packet</span><span class="p">(</span><span class="s">&quot;error&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="String"><a class="viewcode-back" href="../../packets.html#bravo.packets.String">[docs]</a><span class="k">def</span> <span class="nf">String</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    UTF-8 length-prefixed string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">PascalString</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">length_field</span><span class="o">=</span><span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;length&quot;</span><span class="p">),</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="InfiniPacket"><a class="viewcode-back" href="../../packets.html#bravo.packets.InfiniPacket">[docs]</a><span class="k">def</span> <span class="nf">InfiniPacket</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">subconstruct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Common header structure for packets.</span>
+
+<span class="sd">    This is possibly not the best way to go about building these kinds of</span>
+<span class="sd">    things.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">,</span>
+        <span class="c"># XXX Should this be Magic(chr(identifier))?</span>
+        <span class="n">Const</span><span class="p">(</span><span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;identifier&quot;</span><span class="p">),</span> <span class="n">identifier</span><span class="p">),</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;flags&quot;</span><span class="p">),</span>
+        <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;length&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Struct</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">subconstruct</span><span class="p">)</span>
+</div>
+<span class="n">infinipackets</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="n">InfiniPacket</span><span class="p">(</span><span class="s">&quot;ping&quot;</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span>
+        <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;payload&quot;</span><span class="p">,</span>
+            <span class="n">UBInt16</span><span class="p">(</span><span class="s">&quot;uid&quot;</span><span class="p">),</span>
+            <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;timestamp&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+    <span class="mi">255</span><span class="p">:</span> <span class="n">InfiniPacket</span><span class="p">(</span><span class="s">&quot;disconnect&quot;</span><span class="p">,</span> <span class="mh">0xff</span><span class="p">,</span>
+        <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;payload&quot;</span><span class="p">,</span>
+            <span class="n">AlphaString</span><span class="p">(</span><span class="s">&quot;explanation&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+    <span class="s">&quot;__default__&quot;</span><span class="p">:</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;unknown&quot;</span><span class="p">,</span>
+        <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">,</span>
+            <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;identifier&quot;</span><span class="p">),</span>
+            <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;flags&quot;</span><span class="p">),</span>
+            <span class="n">UBInt32</span><span class="p">(</span><span class="s">&quot;length&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">MetaField</span><span class="p">(</span><span class="s">&quot;data&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;length&quot;</span><span class="p">]),</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">infinipackets_by_name</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;ping&quot;</span>       <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s">&quot;disconnect&quot;</span> <span class="p">:</span> <span class="mi">255</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">infinipacket_parser</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;parser&quot;</span><span class="p">,</span>
+    <span class="n">OptionalGreedyRange</span><span class="p">(</span>
+        <span class="n">Struct</span><span class="p">(</span><span class="s">&quot;packets&quot;</span><span class="p">,</span>
+            <span class="n">Peek</span><span class="p">(</span><span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">)),</span>
+            <span class="n">Embed</span><span class="p">(</span><span class="n">Switch</span><span class="p">(</span><span class="s">&quot;packet&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="p">[</span><span class="s">&quot;header&quot;</span><span class="p">],</span>
+                <span class="n">infinipackets</span><span class="p">)),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">OptionalGreedyRange</span><span class="p">(</span>
+        <span class="n">UBInt8</span><span class="p">(</span><span class="s">&quot;leftovers&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parse_infinipackets</span><span class="p">(</span><span class="n">bytestream</span><span class="p">):</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">infinipacket_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">bytestream</span><span class="p">)</span>
+
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="o">.</span><span class="n">header</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">container</span><span class="o">.</span><span class="n">packets</span><span class="p">]</span>
+    <span class="n">leftovers</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">container</span><span class="o">.</span><span class="n">leftovers</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">DUMP_ALL_PACKETS</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">packet</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Parsed packet </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">packet</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">print</span> <span class="n">packet</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">l</span><span class="p">,</span> <span class="n">leftovers</span>
+
+<div class="viewcode-block" id="make_infinipacket"><a class="viewcode-back" href="../../packets.html#bravo.packets.make_infinipacket">[docs]</a><span class="k">def</span> <span class="nf">make_infinipacket</span><span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs a packet bytestream from a packet header and payload.</span>
+
+<span class="sd">    The payload should be passed as keyword arguments. Additional containers</span>
+<span class="sd">    or dictionaries to be added to the payload may be passed positionally, as</span>
+<span class="sd">    well.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">packet</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">infinipackets_by_name</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Couldn&#39;t find packet name </span><span class="si">%s</span><span class="s">!&quot;</span> <span class="o">%</span> <span class="n">packet</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="n">packets_by_name</span><span class="p">[</span><span class="n">packet</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">DUMP_ALL_PACKETS</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Making packet </span><span class="si">%s</span><span class="s"> (</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">container</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">packets</span><span class="p">[</span><span class="n">header</span><span class="p">]</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">+</span> <span class="n">payload</span></div>
 </pre></div>
 
           </div>
@@ -486,13 +660,13 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Plugins &mdash; Bravo v1.0 documentation</title>
+    <title>Plugins &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="index.html" />
     <link rel="next" title="Differences" href="differences.html" />
     <link rel="prev" title="Features" href="features.html" /> 
   </head>
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="features.html" title="Features"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,9 +59,20 @@ are listed here, for convenience.</p>
 <h2>Authenticators<a class="headerlink" href="#authenticators" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="offline">
 <h3>Offline<a class="headerlink" href="#offline" title="Permalink to this headline">¶</a></h3>
+<p>Offline authentication does no checking against the official minecraft.net
+server, so it can be used when minecraft.net is down or the network is
+unreachable for any reason. On the downside, it provides no actual security.</p>
 </div>
 <div class="section" id="online">
 <h3>Online<a class="headerlink" href="#online" title="Permalink to this headline">¶</a></h3>
+<p>Online authentication is the traditional authentication with minecraft.net.</p>
+</div>
+<div class="section" id="password">
+<h3>Password<a class="headerlink" href="#password" title="Permalink to this headline">¶</a></h3>
+<p>Password authentication is an experiemental authentication scheme which
+directly authenticates clients against a server without consulting
+minecraft.net or any other central authority. However, it is not correctly
+implemented in the Notchian client, and will not work with that client.</p>
 </div>
 </div>
 <div class="section" id="terrain-generators">
@@ -111,6 +122,7 @@ are listed here, for convenience.</p>
 <li><a class="reference internal" href="#authenticators">Authenticators</a><ul>
 <li><a class="reference internal" href="#offline">Offline</a></li>
 <li><a class="reference internal" href="#online">Online</a></li>
+<li><a class="reference internal" href="#password">Password</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#terrain-generators">Terrain generators</a><ul>
@@ -175,12 +187,12 @@ are listed here, for convenience.</p>
         <li class="right" >
           <a href="features.html" title="Features"
              >previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

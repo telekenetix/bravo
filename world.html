@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>world – Worlds &mdash; Bravo v1.0 documentation</title>
+    <title>world – Worlds &mdash; Bravo v1.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Bravo v1.0 documentation" href="index.html" />
+    <link rel="top" title="Bravo v1.2 documentation" href="index.html" />
     <link rel="up" title="Core" href="core.html" />
     <link rel="next" title="Auxiliary" href="auxiliary.html" />
     <link rel="prev" title="stdio – Console support" href="stdio.html" /> 
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="stdio.html" title="stdio – Console support"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="core.html" accesskey="U">Core</a> &raquo;</li> 
       </ul>
     </div>  
@@ -58,14 +58,32 @@
 <dl class="class">
 <dt id="bravo.world.World">
 <em class="property">class </em><tt class="descclassname">bravo.world.</tt><tt class="descname">World</tt><big>(</big><em>folder</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">bravo.serializers.json.LevelSerializer</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">bravo.serializers.alpha.LevelSerializer</span></tt></p>
 <p>Object representing a world on disk.</p>
 <p>Worlds are composed of levels and chunks, each of which corresponds to
 exactly one file on disk. Worlds also contain saved player data.</p>
 <dl class="method">
+<dt id="bravo.world.World.enable_cache">
+<tt class="descname">enable_cache</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.enable_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.enable_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start up a rudimentary permanent cache.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bravo.world.World.get_block">
+<tt class="descname">get_block</tt><big>(</big><em>coords</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.get_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.get_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a block from an unknown chunk.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bravo.world.World.get_metadata">
+<tt class="descname">get_metadata</tt><big>(</big><em>coords</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.get_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.get_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a block&#8217;s metadata from an unknown chunk.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="bravo.world.World.load_chunk">
 <tt class="descname">load_chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.load_chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.load_chunk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a <tt class="docutils literal"><span class="pre">Chunk</span></tt>.</p>
+<dd><p>Retrieve a <tt class="docutils literal"><span class="pre">Chunk</span></tt> synchronously.</p>
 <p>This method does lots of automatic caching of chunks to ensure that
 disk I/O is kept to a minimum.</p>
 </dd></dl>
@@ -90,8 +108,16 @@ time.</p>
 
 <dl class="method">
 <dt id="bravo.world.World.request_chunk">
-<tt class="descname">request_chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="headerlink" href="#bravo.world.World.request_chunk" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">request_chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.request_chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.request_chunk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Request a <tt class="docutils literal"><span class="pre">Chunk</span></tt> to be delivered later.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">Deferred that will be called with the Chunk</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -121,6 +147,18 @@ interfering, for backing up the world.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="bravo.world.World.set_block">
+<tt class="descname">set_block</tt><big>(</big><em>coords</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.set_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.set_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a block in an unknown chunk.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bravo.world.World.set_metadata">
+<tt class="descname">set_metadata</tt><big>(</big><em>coords</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.set_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.set_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a block&#8217;s metadata in an unknown chunk.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="bravo.world.World.sort_chunks">
 <tt class="descname">sort_chunks</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bravo/world.html#World.sort_chunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.World.sort_chunks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sort out the internal caches.</p>
@@ -137,7 +175,7 @@ interfering, for backing up the world.</p>
 
 <dl class="function">
 <dt id="bravo.world.names_for_chunk">
-<tt class="descclassname">bravo.world.</tt><tt class="descname">names_for_chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="headerlink" href="#bravo.world.names_for_chunk" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">bravo.world.</tt><tt class="descname">names_for_chunk</tt><big>(</big><em>x</em>, <em>z</em><big>)</big><a class="reference internal" href="_modules/bravo/world.html#names_for_chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bravo.world.names_for_chunk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the folder and file names for given chunk coordinates.</p>
 </dd></dl>
 
@@ -151,7 +189,7 @@ interfering, for backing up the world.</p>
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="stdio.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">stdio</span></tt> &#8211; Console support</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">stdio</span></tt> &#8211; Console support</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="auxiliary.html"
                         title="next chapter">Auxiliary</a></p>
@@ -192,13 +230,13 @@ interfering, for backing up the world.</p>
         <li class="right" >
           <a href="stdio.html" title="stdio – Console support"
              >previous</a> |</li>
-        <li><a href="index.html">Bravo v1.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">Bravo v1.2 documentation</a> &raquo;</li>
           <li><a href="core.html" >Core</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Corbin Simpson &amp; Derrick Dymock.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>
