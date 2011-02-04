@@ -125,6 +125,44 @@ class Tile(object):
         return True, builddata
 
     name = "tile"
+    
+class Placement(object):
+    """
+    Check placement of a block to ensure it doesn't end up on top of a player
+    
+    You almost certainly want to enable this plugin.
+    """
+    
+    implements(IPlugin, IBuildHook)
+    
+    def build_hook(self, factory, player, builddata):
+        block, metadata, x, y, z, face = builddata
+        
+        # Offset coords according to face.
+        # Don't place blocks on the player.
+        print face + str(x) + " vs " + str(player.location.x) + " " + str(y) + " vs " + str(player.location.y) + " " + str(z) + " vs " + str(player.location.z)
+        if face == "-x":
+            if (x - 1) == player.location.x:
+                return False, builddata
+        elif face == "+x":
+            if (x + 1) == player.location.x:
+                return False, builddata
+        elif face == "-y":
+            if ((y - 1) == player.location.y) and x == player.location.x and z == player.location.z:
+                return False, builddata
+        elif face == "+y":
+            if (y + 2) == player.location.y and (x + 1) == player.location.x and (z + 1)  == player.location.z:
+                return False, builddata
+        elif face == "-z":
+            if (z - 2) == player.location.z:
+                return False, builddata
+        elif face == "+z":
+            if (z + 2) == player.location.z:
+                return False, builddata
+            
+        return True, builddata
+            
+    name = "placement"
 
 class Build(object):
     """
@@ -138,6 +176,7 @@ class Build(object):
     def build_hook(self, factory, player, builddata):
         block, metadata, x, y, z, face = builddata
 
+        print "Called build"
         # Don't place items as blocks.
         if block.slot not in blocks:
             return True, builddata
@@ -146,28 +185,16 @@ class Build(object):
         # Don't place blocks on the player
         if face == "-x":
             x -= 1
-            if (x + 1) == player.location.x:
-                return True, builddata
         elif face == "+x":
             x += 1
-            if (x + 1) == player.location.x:
-                return True, builddata
         elif face == "-y":
             y -= 1
-            if (y == player.location.y) and (x + 1) == player.location.x and z == player.location.z:
-                return True, builddata
         elif face == "+y":
             y += 1
-            if (y + 1) == player.location.y and (x +1) == player.location.x and z == player.location.z:
-                return True, builddata
         elif face == "-z":
             z -= 1
-            if z == player.location.z:
-                return True, builddata
         elif face == "+z":
             z += 1
-            if z == player.location.z:
-                return True, builddata
                 
         bigx, smallx, bigz, smallz = split_coords(x, z)
         
@@ -209,6 +236,7 @@ class BuildSnow(object):
 
 torch = Torch()
 tile = Tile()
+placement = Placement()
 build = Build()
 build_snow = BuildSnow()
 ladder = Ladder()
