@@ -142,25 +142,39 @@ class Build(object):
         if block.slot not in blocks:
             return True, builddata
 
+        # Offset coords according to face.
+        # Don't place blocks on the player
+        if face == "-x":
+            x -= 1
+            if (x + 1) == player.location.x:
+                return True, builddata
+        elif face == "+x":
+            x += 1
+            if (x + 1) == player.location.x:
+                return True, builddata
+        elif face == "-y":
+            y -= 1
+            if (y == player.location.y) and (x + 1) == player.location.x and z == player.location.z:
+                return True, builddata
+        elif face == "+y":
+            y += 1
+            if (y + 1) == player.location.y and (x +1) == player.location.x and z == player.location.z:
+                return True, builddata
+        elif face == "-z":
+            z -= 1
+            if z == player.location.z:
+                return True, builddata
+        elif face == "+z":
+            z += 1
+            if z == player.location.z:
+                return True, builddata
+                
+        bigx, smallx, bigz, smallz = split_coords(x, z)
+        
         # Make sure we can remove it from the inventory first.
         if not player.inventory.consume((block.slot, 0)):
             return True, builddata
-
-        # Offset coords according to face.
-        if face == "-x":
-            x -= 1
-        elif face == "+x":
-            x += 1
-        elif face == "-y":
-            y -= 1
-        elif face == "+y":
-            y += 1
-        elif face == "-z":
-            z -= 1
-        elif face == "+z":
-            z += 1
-
-        bigx, smallx, bigz, smallz = split_coords(x, z)
+        
         chunk = factory.world.load_chunk(bigx, bigz)
 
         chunk.set_block((smallx, y, smallz), block.slot)
